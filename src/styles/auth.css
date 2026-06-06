@@ -1,0 +1,213 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f3f4f6;
+  color: #1a1a1a;
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* PAGE LAYOUT */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+/* BRAND LINK */
+.brand {
+  margin-bottom: 24px;
+}
+
+.brand a {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.brand a:hover {
+  color: #2563eb;
+}
+
+/* CARD */
+.card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.card h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 28px;
+}
+
+/* FORM */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.row-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label-link {
+  font-size: 0.8rem;
+  color: #2563eb;
+  font-weight: 400;
+}
+
+.label-link:hover {
+  text-decoration: underline;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  padding: 10px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+input:focus {
+  border-color: #2563eb;
+}
+
+input::placeholder {
+  color: #aaa;
+}
+
+/* CHECKBOX ROW */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.check-row input[type="checkbox"] {
+  accent-color: #2563eb;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.check-row a {
+  color: #2563eb;
+}
+
+.check-row a:hover {
+  text-decoration: underline;
+}
+
+/* SUBMIT BUTTON */
+.btn-submit {
+  width: 100%;
+  padding: 11px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* SWITCH LINK */
+.switch {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #777;
+  margin-top: 20px;
+}
+
+.switch a {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.switch a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .card {
+    padding: 28px 20px;
+  }
+  .row-two {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ERROR MESSAGE */
+.error-msg {
+  font-size: 0.85rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
