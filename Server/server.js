@@ -9,24 +9,23 @@ connectDB();
 
 const app = express();
 app.use(cors());
-
 app.use(express.json());
-0
 
 // Routes
 app.use("/api/auth", authRoutes);
 
-
 app.get("/", (req, res) => {
+  console.log("Server is run on / port");
   res.send("API Running...");
-  console.log("Server is run on / port")
 });
+
 app.get("/test", (req, res) => {
   console.log("Test route accessed");
   res.json({ message: "Server is working" });
 });
-const PORT = process.env.PORT || 5050;
+
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
