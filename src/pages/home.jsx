@@ -191,7 +191,7 @@ export default function home() {
 
                             <div className="second-row-second-box">
                                 <h3>Bill History (Last 6 Months)</h3>
-                                <ResponsiveContainer width="100%" height={400}>
+                                <ResponsiveContainer width="100%" height={350}>
                                     <AreaChart data={data}>
                                         <defs>
                                             <linearGradient
