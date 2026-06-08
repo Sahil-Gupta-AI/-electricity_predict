@@ -36,7 +36,7 @@ export default function SignupPage() {
       setLoading(true);
 
       const res = await axios.post(
-        "https://c055bbb0-622f-40e3-aa31-e7b25df5ab80-00-3tvytptsgwav9.riker.replit.dev/api/auth/register",
+        "/api/auth/register",
         {
           fname: form.fname,
           lname: form.lname,
