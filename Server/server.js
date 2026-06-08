@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
-console.log("Test route accessed");
+0
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -19,6 +19,7 @@ app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running...");
+  console.log("Server is run on / port")
 });
 app.get("/test", (req, res) => {
   console.log("Test route accessed");
