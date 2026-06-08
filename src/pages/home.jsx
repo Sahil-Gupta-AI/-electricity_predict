@@ -236,7 +236,7 @@ export default function home() {
                                                 value: "Bill (₹)",
                                                 angle: -90,
                                                 position: "insideLeft",
-                                                offset: -5
+                                                offset: 20,
                                             }}
                                         />
                                         <Tooltip />
