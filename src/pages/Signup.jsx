@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/auth.css';
+import axios from "axios";
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -22,28 +23,44 @@ export default function SignupPage() {
     }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (form.password !== form.confirm) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match");
       return;
     }
 
-    setLoading(true);
-    // Replace with your actual signup logic
-    setTimeout(() => {
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        "https://c055bbb0-622f-40e3-aa31-e7b25df5ab80-00-3tvytptsgwav9.riker.replit.dev/api/auth/register",
+        {
+          fname: form.fname,
+          lname: form.lname,
+          email: form.email,
+          password: form.password,
+        }
+      );
+
+      alert(res.data.message);
+
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Something went wrong"
+      );
+    } finally {
       setLoading(false);
-      alert('Signup logic goes here!');
-    }, 1500);
+    }
   }
 
   return (
     <div className="page">
 
       <div className="brand">
-        <Link to="/">⚡ EnergyTrack</Link>
+        <Link to="/"> Tejas Cyber Solution</Link>
       </div>
 
       <div className="card">
@@ -142,3 +159,4 @@ export default function SignupPage() {
     </div>
   );
 }
+

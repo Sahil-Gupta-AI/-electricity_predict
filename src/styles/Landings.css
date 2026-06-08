@@ -18,7 +18,7 @@ a {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1wh;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -31,6 +31,8 @@ header {
   position: sticky;
   top: 0;
   z-index: 10;
+  max-width:1wh;
+  height: 83px;
 }
 
 .nav {
@@ -40,34 +42,31 @@ header {
 }
 
 /* Logo */
-.logo-pic{
-   height: 100px;
-   padding: 0px;
-   margin: 0px;
-   overflow: hidden;
-  
-   
+.logo-pic {
+  height: 80px;
 }
 
 .logo {
   /* font-size: 1.2rem; */
   font-weight: 700;
   color: #1a1a1a;
-   overflow: hidden;
+  height: 50px;
 }
 
 .nav-links {
+  margin-top:15px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
 }
 
-.nav-links a {
+.nav-links link {
   font-size: 0.95rem;
   color: #444;
 }
 
-.nav-links a:hover {
+.nav-links link:hover {
   color: #1a1a1a;
 }
 

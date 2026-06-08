@@ -22,7 +22,7 @@ export default function LoginPage() {
     <div className="page">
 
       <div className="brand">
-        <Link to="/">⚡ EnergyTrack</Link>
+        <Link to="/">Tejas Cyber Solution</Link>
       </div>
 
       <div className="card">
