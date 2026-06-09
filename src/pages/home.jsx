@@ -17,6 +17,7 @@ import { FileSpreadsheet } from "lucide-react";
 import { Snowflake } from "lucide-react";
 import { Lightbulb as Lightbulb2 } from "lucide-react";
 import { PlugZap } from "lucide-react";
+import "../pages/Sidebar_Menu";
 
 /* BILL CHARTS IMPORT*/
 import { LineChart } from "recharts";
@@ -31,7 +32,7 @@ import { Area } from "recharts";
 import { AreaChart } from "recharts";
 
 export default function home() {
-    const [collapsed, setCollapsed] = useState(false);
+   
     const user = JSON.parse(localStorage.getItem('user')); 
     
     const userdetail = {
@@ -48,52 +49,10 @@ export default function home() {
     ];
     return (
         <>
+             <Sidebar_Menu />
+            
             <div className="layout">
-                <aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
-                    <div className="sidebar-header">
-                        <img className="logo-pic" src="./logo.png" />
-                    </div>
-
-                    <ul>
-                        <li>
-                            <a>
-                                <House className="logo-button" /> {!collapsed && <span>Dashboard{" "}</span>}
-                            </a>
-                        </li>
-                        <li>
-                            <a>
-                                <Book className="logo-button" /> {!collapsed && <span>Predict Bills{" "}</span>}
-                            </a>
-                        </li>
-                        <li>
-                            <a>
-                                <ListVideo className="logo-button" /> {!collapsed && <span>Bill
-                                History{" "}</span>}
-                            </a>
-                        </li>
-                        <li>
-                            <a>
-                                <FileUser className="logo-button" /> {!collapsed && <span>Consumption
-                                History{" "}</span>}
-                            </a>
-                        </li>
-                        <li>
-                            <a>
-                                <Lightbulb className="logo-button" /> {!collapsed && <span>Tips & Suggestions{" "}</span>}
-                            </a>
-                        </li>
-                        <li>
-                            <a>
-                                <UserPen className="logo-button" /> {!collapsed && <span>Profile{" "}</span>}
-                            </a>
-                        </li>
-                        <li>
-                            <a>
-                                <LogOut className="logo-button" /> {!collapsed && <span>Logout{" "}</span>}
-                            </a>
-                        </li>
-                    </ul>
-                </aside>
+                
                 <div className="main-content">
                     <header className="top-navbar">
                         <div className="navbar">

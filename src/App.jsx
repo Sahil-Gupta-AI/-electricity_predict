@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/home";
 import Login from "./pages/login";
 import Signup from "./pages/Signup";
+import PredictBillPage from "./pages/PredictBillPage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/Home" element={<HomePage />}/>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/predictbill" element={<PredictBillPage />} />
       </Routes>
     </BrowserRouter>
   );
