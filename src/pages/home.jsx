@@ -35,8 +35,8 @@ export default function home() {
     const user = JSON.parse(localStorage.getItem('user')); 
     
     const userdetail = {
-        name: {user?.name},
-        initials: "AK",
+        name: user?.name,
+        initials: user?.initials,
     }
     const data = [
         { month: "Jan", bill: 1000 },
@@ -104,7 +104,7 @@ export default function home() {
                                 <Menu />
                             </div>
                             <div className="profile">
-                                <div className="avatar">{user.initials}</div>
+                                <div className="avatar">{user?.initials}</div>
                                 {userdetail.name}
                                 <ChevronDown />
                             </div>
