@@ -2,13 +2,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/auth.css';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [err, setError] = useState('');
+  const navigator = useNavigate();
+  
   async function handleSubmit(e) {
     e.preventDefault();
     
@@ -24,8 +28,8 @@ export default function LoginPage() {
         }
       );
   
-    navigator("/home")
-       alert(res.data.message);
+      localStorage.setItem("token", res.data.token);
+      navigator("/Home");
     } catch (err) {
       setError(
         err.response?.data?.message || "Something went wrong"
@@ -93,6 +97,8 @@ export default function LoginPage() {
           <button type="submit" className="btn-submit" disabled={loading}>
             {loading ? 'Logging in…' : 'Log In'}
           </button>
+
+          {err && <p className="error-msg">{err}</p>}
 
         </form>
 

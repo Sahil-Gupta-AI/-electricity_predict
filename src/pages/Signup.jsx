@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/auth.css';
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -14,7 +15,8 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+  const navigate = useNavigate();
+  
   function handleChange(e) {
     const { id, value, type, checked } = e.target;
     setForm((prev) => ({
@@ -33,6 +35,7 @@ export default function SignupPage() {
     }
 
     try {
+      
       setLoading(true);
 
       const res = await axios.post(
@@ -44,8 +47,8 @@ export default function SignupPage() {
           password: form.password,
         }
       );
-      navigator("/login")
-      alert(res.data.message);
+        navigate("/login")
+      // alert(res.data.message);
 
     } catch (err) {
       setError(

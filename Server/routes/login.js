@@ -1,10 +1,10 @@
 const  express = require("express");
 const { preinitModule } = require("react-dom");
-const routes = express.Router();
+const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require("../models/User");
 
-routes.post("/login",async (req , res) =>{
+router.post("/login",async (req , res) =>{
     try{
       const {email , password} = req.body;
       const user =  await User.findOne({email});

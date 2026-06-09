@@ -16,7 +16,6 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = new User({ fname, lname, email, password: hashedPassword });
     await user.save();
 
@@ -27,6 +26,31 @@ router.post("/register", async (req, res) => {
 
   } catch (error) {
     console.error("Register error:", error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+
+    console.log(`User logged in: ${email}`);
+    res.json({ message: "Login successful!", token });
+
+  } catch (error) {
+    console.error("Login error:", error.message);
     res.status(500).json({ message: error.message });
   }
 });
