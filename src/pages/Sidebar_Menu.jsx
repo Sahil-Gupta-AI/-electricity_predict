@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import "../styles/home.css";
+import "../styles/Sidebar_Menu.css";
 import { House } from "lucide-react";
 import { Book } from "lucide-react";
 import { ListVideo } from "lucide-react";
