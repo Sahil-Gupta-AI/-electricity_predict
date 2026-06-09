@@ -29,6 +29,7 @@ export default function LoginPage() {
       );
   
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       navigator("/Home");
     } catch (err) {
       setError(

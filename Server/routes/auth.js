@@ -50,9 +50,9 @@ router.post("/login", async (req, res) => {
     res.status(200).json({
         message: "Login successful!",
         token,
-        user: { 
-            name: user.fname + " " + user.lname, 
-            initials: user.initials 
+        user: {
+            name: user.fname + " " + user.lname,
+            initials: user.fname.charAt(0).toUpperCase() + user.lname.charAt(0).toUpperCase()
         }
     });
     
