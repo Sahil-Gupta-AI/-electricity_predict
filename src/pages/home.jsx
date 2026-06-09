@@ -32,6 +32,12 @@ import { AreaChart } from "recharts";
 
 export default function home() {
     const [collapsed, setCollapsed] = useState(false);
+    const user = JSON.parse(localStorage.getItem('user')); 
+    
+    const userdetail = {
+        name: {user?.name},
+        initials: "AK",
+    }
     const data = [
         { month: "Jan", bill: 1000 },
         { month: "Feb", bill: 1500 },
@@ -98,8 +104,8 @@ export default function home() {
                                 <Menu />
                             </div>
                             <div className="profile">
-                                <div className="avatar">AK</div>
-                                Amit Kumar
+                                <div className="avatar">{user.initials}</div>
+                                {userdetail.name}
                                 <ChevronDown />
                             </div>
                         </div>
