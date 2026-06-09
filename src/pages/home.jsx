@@ -1,13 +1,6 @@
 import { Link } from "react-router-dom";
 import "../styles/home.css";
 import { useState } from "react";
-import { House } from "lucide-react";
-import { Book } from "lucide-react";
-import { ListVideo } from "lucide-react";
-import { FileUser } from "lucide-react";
-import { Lightbulb } from "lucide-react";
-import { UserPen } from "lucide-react";
-import { LogOut } from "lucide-react";
 import { Menu } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { ClockFading } from "lucide-react";
@@ -15,9 +8,9 @@ import { StepBack } from "lucide-react";
 import { FileDown } from "lucide-react";
 import { FileSpreadsheet } from "lucide-react";
 import { Snowflake } from "lucide-react";
-import { Lightbulb as Lightbulb2 } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { PlugZap } from "lucide-react";
-import "../pages/Sidebar_Menu";
+import Sidebar_Menu from "./Sidebar_Menu";
 
 /* BILL CHARTS IMPORT*/
 import { LineChart } from "recharts";
@@ -33,6 +26,7 @@ import { AreaChart } from "recharts";
 
 export default function home() {
    
+    const [collapsed, setCollapsed] = useState(false);
     const user = JSON.parse(localStorage.getItem('user')); 
     
     const userdetail = {
@@ -49,10 +43,8 @@ export default function home() {
     ];
     return (
         <>
-             <Sidebar_Menu />
-            
             <div className="layout">
-                
+                <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
                 <div className="main-content">
                     <header className="top-navbar">
                         <div className="navbar">

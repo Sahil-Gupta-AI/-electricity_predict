@@ -1,15 +1,17 @@
-import { useState } from "react";
-import { link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "../styles/home.css";
-import { useNavigate } from "react-router-dom";
+import { House } from "lucide-react";
+import { Book } from "lucide-react";
+import { ListVideo } from "lucide-react";
+import { FileUser } from "lucide-react";
+import { Lightbulb } from "lucide-react";
+import { UserPen } from "lucide-react";
+import { LogOut } from "lucide-react";
 
-
-export default function Sidebar_Menu() {
-    const [collapsed, setCollapsed] = useState(false);
+export default function Sidebar_Menu({ collapsed, setCollapsed }) {
 return (
   <>
-      <div className="layout">
-          <aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
+      <aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
               <div className="sidebar-header">
                   <img className="logo-pic" src="./logo.png" />
               </div>
@@ -54,9 +56,6 @@ return (
                   </li>
               </ul>
           </aside>
-      </div>
-      
-
  </>
 
     );
