@@ -33,7 +33,9 @@ ul{
   color:white;
   min-height:100vh;
   transition:0.3s;
+  overflow:hidden;
 }
+
 
 .sidebar-header{
   height:100px;
@@ -69,6 +71,16 @@ ul{
 .Sidebar li a:hover{
   background:#4f46e5;
 }
+
+.Sidebar.collapsed ul li a{
+    justify-content:center;
+}
+
+.Sidebar.collapsed .logo-pic{
+    width:40px;
+    height:auto;
+}
+
 
 .logo-button{
   width:20px;
@@ -198,11 +210,15 @@ ul{
 }
 
 #orange{
-    background:#fff5df;
+    background:#f8ebe2;
 }
 
 #purple{
     background:#f4ebff;
+}
+
+#yellow{
+    background:#fff5df;
 }
 .first-row-box-box{
     display: flex;
@@ -277,7 +293,7 @@ ul{
     width:170px;
     height:170px;
     background:white;
-    border-radius:35%;
+    border-radius:50%;
     display:flex;
     flex-direction:column;
     justify-content:center;
@@ -355,7 +371,7 @@ ul{
     display: flex;
     flex-direction: column;
     width: 100%;
-    align-items:center;
+    align-items:stretch;
     
     
 }
@@ -364,14 +380,10 @@ ul{
   margin-bottom: 20px;
   font-size: 18px;
   font-weight: 600;
-  align-items:stretch;
+  padding: 10px;
  
 }
 
-.recharts-responsive-container {
-  width: 100% ;
-  height: 300px;
-}
 
 .second-row-third-box{
      background: white;
@@ -383,6 +395,7 @@ ul{
     width: 350px;
     align-items:left;
     max-height: 380px;
+    flex-shrink: 0;
 }
 
 .tips-card h3 {

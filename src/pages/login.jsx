@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/auth.css';
+import axios from 'axios';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -8,14 +9,35 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
+    
     // Replace with your actual login logic
-    setTimeout(() => {
+    try{
+      setLoading(true);
+    
+      const res = await axios.post(
+        "/api/auth/login",
+        {
+          email: email,
+          password: password,
+        }
+      );
+  
+    navigator("/home")
+       alert(res.data.message);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Something went wrong"
+      );
+    } finally {
       setLoading(false);
-      alert('Login logic goes here!');
-    }, 1500);
+    }
+      
+    // setTimeout(() => {
+    //   setLoading(false);
+    //   alert('Login logic goes here!');
+    // }, 1500);
   }
 
   return (

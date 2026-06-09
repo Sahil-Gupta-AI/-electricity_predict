@@ -1,8 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || "ElectricityAnalyser";
 
 router.post("/register", async (req, res) => {
   try {
@@ -15,18 +17,14 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({
-      fname,
-      lname,
-      email,
-      password: hashedPassword,
-    });
-
+    const user = new User({ fname, lname, email, password: hashedPassword });
     await user.save();
 
-    console.log(`New user registered: ${email}`);
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
 
-    res.json({ message: "User Registered Successfully" });
+    console.log(`New user registered: ${email}`);
+    res.json({ message: "Registration successful!", token });
+
   } catch (error) {
     console.error("Register error:", error.message);
     res.status(500).json({ message: error.message });

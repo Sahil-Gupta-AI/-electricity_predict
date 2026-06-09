@@ -51,41 +51,39 @@ export default function home() {
                     <ul>
                         <li>
                             <a>
-                                <House className="logo-button" /> Dashboard{" "}
+                                <House className="logo-button" /> {!collapsed && <span>Dashboard{" "}</span>}
                             </a>
                         </li>
                         <li>
                             <a>
-                                <Book className="logo-button" /> Predict
-                                Bills{" "}
+                                <Book className="logo-button" /> {!collapsed && <span>Predict Bills{" "}</span>}
                             </a>
                         </li>
                         <li>
                             <a>
-                                <ListVideo className="logo-button" /> Bill
-                                History
+                                <ListVideo className="logo-button" /> {!collapsed && <span>Bill
+                                History{" "}</span>}
                             </a>
                         </li>
                         <li>
                             <a>
-                                <FileUser className="logo-button" /> Consumption
-                                History{" "}
+                                <FileUser className="logo-button" /> {!collapsed && <span>Consumption
+                                History{" "}</span>}
                             </a>
                         </li>
                         <li>
                             <a>
-                                <Lightbulb className="logo-button" /> Tips &
-                                Suggestions
+                                <Lightbulb className="logo-button" /> {!collapsed && <span>Tips & Suggestions{" "}</span>}
                             </a>
                         </li>
                         <li>
                             <a>
-                                <UserPen className="logo-button" /> Profile{" "}
+                                <UserPen className="logo-button" /> {!collapsed && <span>Profile{" "}</span>}
                             </a>
                         </li>
                         <li>
                             <a>
-                                <LogOut className="logo-button" /> Logout{" "}
+                                <LogOut className="logo-button" /> {!collapsed && <span>Logout{" "}</span>}
                             </a>
                         </li>
                     </ul>
@@ -100,7 +98,7 @@ export default function home() {
                                 <Menu />
                             </div>
                             <div className="profile">
-                                <div className="avatar">A</div>
+                                <div className="avatar">AK</div>
                                 Amit Kumar
                                 <ChevronDown />
                             </div>
@@ -192,7 +190,13 @@ export default function home() {
                             <div className="second-row-second-box">
                                 <h3>Bill History (Last 6 Months)</h3>
                                 <ResponsiveContainer width="100%" height={350}>
-                                    <AreaChart data={data}>
+                                    <AreaChart data={data}
+                                         margin={{
+                                            top: 10,
+                                            right: 10,
+                                            left: -5,
+                                            bottom: 25
+                                          }}>
                                         <defs>
                                             <linearGradient
                                                 id="billColor"
@@ -222,7 +226,7 @@ export default function home() {
                                             label={{
                                                 value: "Month",
                                                 position: "insideBottom",
-                                                offset: -5,
+                                                offset: -20,
                                             }}
                                         />
                                         <YAxis
@@ -236,7 +240,7 @@ export default function home() {
                                                 value: "Bill (₹)",
                                                 angle: -90,
                                                 position: "insideLeft",
-                                                offset: 20,
+                                                offset: 15,
                                             }}
                                         />
                                         <Tooltip />
@@ -260,7 +264,7 @@ export default function home() {
                                   <h3>Energy Saving Tips</h3>
 
                                   <div className="tip-item">
-                                    <div className="tip-icon">
+                                    <div className="tip-icon" id="blue">
                                         <Snowflake size={24} color="#3b82f6" />
                                     </div>
 
@@ -271,7 +275,7 @@ export default function home() {
                                   </div>
 
                                   <div className="tip-item">
-                                    <div className="tip-icon">
+                                    <div className="tip-icon" id="yellow">
                                         <Lightbulb size={24} color="#f59e0b" />
                                     </div>
 
@@ -282,7 +286,7 @@ export default function home() {
                                   </div>
 
                                   <div className="tip-item">
-                                    <div className="tip-icon">
+                                    <div className="tip-icon" id="orange">
                                         <PlugZap size={24} color="#f59e0b" />
                                     </div>
 

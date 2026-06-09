@@ -44,7 +44,7 @@ export default function SignupPage() {
           password: form.password,
         }
       );
-
+      navigator("/login")
       alert(res.data.message);
 
     } catch (err) {
