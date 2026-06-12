@@ -227,6 +227,8 @@ ul{
   border-radius: 16px;
   border: 2px solid #e5e7eb;
   margin-bottom: 25px;
+  justify-content: center; 
+  align-items: center;
 }
 
 .company-logo{
@@ -341,6 +343,8 @@ ul{
   height:40px;
   width:300px;
   margin-top:30px;
+  margin-left:auto;
+  margin-right:auto;
   display:flex;
   color:#4f46e5;
    background-color:#0b32b1; 
