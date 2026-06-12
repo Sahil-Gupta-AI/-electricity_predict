@@ -190,6 +190,7 @@ ul{
   display:flex;
   flex-direction:column;
   gap:8px;
+  
 }
 
 .field label{
@@ -209,26 +210,37 @@ ul{
   padding:0 12px;
 }
 
+.field select{
+  border-color: #1677ff;
+}
+
 .field input:hover,
 .field select:hover{
   border-color: #1677ff;
 }
 
+.field input:focus,
+.field select:focus{
+  border-color: #1677ff;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.15);
+}
 
 
 /* Company Detail Showing */
-
-.company-detail{
-  display: flex;
-  gap: 30px;
-  margin-top: 25px;
+.company-box{
   background-color: #f6f7fd;
-  padding: 25px 16px;
   border-radius: 16px;
   border: 2px solid #e5e7eb;
+  margin-top: 25px;
   margin-bottom: 25px;
   justify-content: center; 
   align-items: center;
+  flex-direction: center;
+  padding: 25px 16px;
+}
+.company-detail{
+  display: flex;
+  gap: 30px; 
 }
 
 .company-logo{
@@ -310,6 +322,12 @@ ul{
   flex-direction: row;
 }
 
+.tariff-grid div div p:nth-child(2){
+   font-family: "Inter", sans-serif;
+   font-weight: 500;
+
+}
+
 .grid-logo{
   width: 20px;
   height: 20px;
@@ -319,7 +337,7 @@ ul{
 
 .tariff-grid h4{
   color: #5D5E6E;
-   font-size: 16px;
+  font-size: 16px;
   font-weight: 500; 
 }
 
@@ -360,8 +378,7 @@ ul{
 .open-tariff-button{
   height: 40px;
   width: 300px;
-  margin-top: 16px;
-  align-self: center;
+  margin:15px auto 0 auto;
   display: flex;
   background-color: #0b32b1;
   text-align: center;
@@ -370,7 +387,7 @@ ul{
   cursor: pointer;
   border-radius: 8px;
   gap: 8px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s ease;
 }
 
 .open-tariff-button:hover{
@@ -388,8 +405,7 @@ ul{
 .close-button{
   height:40px;
   width:300px;
-  margin-top:30px;
-  align-self:center;
+  margin:30px auto 0 auto;
   display:flex;
   color:#4f46e5;
   background-color:#0b32b1; 
@@ -465,6 +481,7 @@ ul{
   background:#F7F5FE;
   padding:10px;
   border-radius:16px;
+  height:570px;
 }
 
 .how-card p{
@@ -478,7 +495,7 @@ ul{
 }
 .bulb-icon{
   height:150px;
-  margin-bottom: 20px;
+  margin-top: -20px;
 }
 .bulb-container{
   display:flex;

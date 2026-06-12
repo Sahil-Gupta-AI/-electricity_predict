@@ -95,6 +95,7 @@ export default function PredictBillPage() {
                 </div>
 
                 {/* Tariff Card */}
+                <div className="company-box">
                 <div className="company-detail">
 
                   <div className="company-logo">
@@ -206,6 +207,7 @@ export default function PredictBillPage() {
                   </div>
 
                 </div>
+              </div>
 
                 {/* Previous Data */}
                 <h3>Previous Month Data</h3>
