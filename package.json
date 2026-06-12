@@ -10,13 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.2.5",
+    "antd": "^6.4.3",
     "axios": "^1.17.0",
+    "dayjs": "^1.11.21",
     "git": "^0.1.5",
     "isomorphic-git": "^1.38.4",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.17.0",
+    "react-select": "^5.10.2",
     "recharts": "^3.8.1",
     "simple-git": "^3.36.0"
   },

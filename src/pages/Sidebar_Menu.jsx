@@ -7,8 +7,10 @@ import { FileUser } from "lucide-react";
 import { Lightbulb } from "lucide-react";
 import { UserPen } from "lucide-react";
 import { LogOut } from "lucide-react";
+import PredictBillPage from "./PredictBillPage";
 
 export default function Sidebar_Menu({ collapsed, setCollapsed }) {
+    
 return (
   <>
       <aside className={`Sidebar ${collapsed ? "collapsed" : ""}`}>
@@ -18,15 +20,18 @@ return (
 
               <ul>
                   <li>
-                      <a>
-                          <House className="logo-button" /> {!collapsed && <span>Dashboard{" "}</span>}
-                      </a>
+                    <Link to="/home" className="sidebar-link">
+                      <House className="logo-button" /> 
+                      {!collapsed && <span>Dashboard</span>}
+                    </Link>
                   </li>
                   <li>
-                      <a>
-                          <Book className="logo-button" /> {!collapsed && <span>Predict Bills{" "}</span>}
-                      </a>
+                    <Link to="/predictbill" className="sidebar-link">
+                      <Book className="logo-button" /> 
+                      {!collapsed && <span>Predict Bills</span>}
+                    </Link>
                   </li>
+
                   <li>
                       <a>
                           <ListVideo className="logo-button" /> {!collapsed && <span>Bill

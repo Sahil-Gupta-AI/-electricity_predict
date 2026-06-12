@@ -3,11 +3,38 @@ import { useState } from "react";
 import "../styles/predictbill.css";
 import Sidebar_Menu from "./Sidebar_Menu";
 import { Menu, ChevronDown } from "lucide-react";
-import { Lightbulb } from "lucide-react";
+import { DatePicker } from "antd";
+import { CalendarOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import Select from "react-select";
+
+
+// Symbol Or Icon Imports
+import { Info } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
+import { Zap } from "lucide-react";
+import { Dessert } from "lucide-react";
+import { ReceiptText } from "lucide-react";
+import { HousePlus } from "lucide-react";
+import { RadioTower } from "lucide-react";
+import { ChevronUp } from 'lucide-react';
 
 export default function PredictBillPage() {
   const [collapsed, setCollapsed] = useState(false);
+  const [month, setMonth] = useState("");
 
+  // company options
+  const options = [
+    { value: "none", label: "None" },
+    { value: "best", label: "Best Power" },
+    { value: "adani", label: "Adani Electricity Mumbai Limited (AEML)" },
+    { value: "tata", label: "Tata Power" },
+    { value: "msedcl", label: "MSEDCL (Mahavitaran)" },
+    { value: "torrent", label: "Torrent Power" },
+  ];
+  
+  const [lastudated, setLastUpdated] = useState(" 01 Jun 2024")
+  const [company_status, set_company_Status] = useState("Active");
   return (
     <>
       <div className="layout">
@@ -27,147 +54,250 @@ export default function PredictBillPage() {
               </div>
             </div>
           </header>
-        
-        <main className="content">
-          <h2>Predict Next Month Bill</h2>
-          <p>Enter your Details below to get an accurate prediction</p>
 
-          <div className="predict-layout">
+          <main className="content">
+            <h2 className="header-h2">Predict Your Next Month Bill</h2>
+            <p className="header-p">
+              Enter your Details below to get an accurate prediction.
+            </p>
 
-            {/* LEFT SIDE */}
-            <div className="form-card">
+            <div className="predict-layout">
+              {/* LEFT SIDE */}
+              <div className="form-card">
+                <h2>Enter Information</h2>
+                <p>All fields are required</p>
 
-              <h2>Enter Information</h2>
-              <p>All fields are required</p>
+                <div className="top-fields">
+                  <div className="field">
+                    <label>Select Month</label>
+                    <DatePicker
+                      picker="month"
+                      className="month-picker"
+                      format="MMM YYYY"
+                      placeholder="Select Month"
+                      onChange={(date, dateString) => setMonth(dateString)}
+                      suffixIcon={<CalendarOutlined />}
+                    />
+                  </div>
 
-              <div className="top-fields">
-
-                <div className="field">
-                  <label>Select Month</label>
-                  <input type="month" value=""/>
+                  <div className="field">
+                    <label>Electricity Provider</label>
+                    <Select
+                      options={options}
+                      classNamePrefix="provider"
+                      placeholder="Select Provider"
+                      components={{
+                        IndicatorSeparator: () => null
+                      }}
+                    />
+                  </div>
                 </div>
 
-                <div className="field">
-                  <label>Electricity Provider</label>
-                  <select>
-                    <option>None</option>
-                    <option>Tata Power</option>
-                    <option>MSEDCL</option>
-                    <option>Adani Electricity</option>
-                  </select>
+                {/* Tariff Card */}
+                <div className="company-detail">
+
+                  <div className="company-logo">
+                    <img src="src/assets/tata-power-logo.png" alt="Tata Power" />
+                  </div>
+
+                  <div className="company-info">
+
+                    <div className="company-header">
+
+                      <div className="left-header">
+                        <h3>Tata Power Tariff Details</h3>
+
+                        <div className="company-status">
+                          <p className="company-status-button">
+                            {company_status}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="last-update">
+                        <p className="last-update-p">
+                          Last Updated: {lastudated}
+                        </p>
+                        <Info />
+                      </div>
+
+                    </div>
+
+                    <div className="tariff-grid">
+                      <div>
+                        <div>
+                        <LockKeyhole className="grid-logo"/>
+                        <h4>Fixed Charge</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">₹140 </p>
+                        <p>/ month</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <Zap className="grid-logo"/>
+                        <h4>Energy Rate</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">₹7.20 </p>
+                        <p> / kWh</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <Dessert className="grid-logo"/>
+                        <h4>FAC</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">₹0.45 </p>
+                        <p> / kWh</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <ReceiptText className="grid-logo"/>
+                        <h4>Duty</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">16%</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <HousePlus className="grid-logo"/>
+                        <h4>Category</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">Residential</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <RadioTower className="grid-logo"/>
+                        <h4>Connection Type</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">LT</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="close-button">
+                      <p>Close Full Tariff Details</p>
+                      <ChevronUp className="grid-close"/>
+                    </div>
+
+                  </div>
+
                 </div>
 
+                {/* Previous Data */}
+                <h3>Previous Month Data</h3>
+
+                <div className="previous-grid">
+                  <div className="field">
+                    <label>Previous Month Units (kWh)</label>
+                    <input type="number" placeholder="Enter units" />
+                  </div>
+
+                  <div className="field">
+                    <label>Previous Month Bill Amount (₹) </label>
+                    <input type="number" placeholder="Enter amount" />
+                  </div>
+                </div>
+
+                {/* History Box */}
+                <div className="history-box">
+                  <h3>Add Previous Previous Month Data (Optional)</h3>
+                  <p>
+                    Including more historical data improves prediction accuracy
+                  </p>
+
+                  <div className="history-grid">
+                    <div className="field">
+                      <label>Units (kWh) </label>
+                      <input type="number" placeholder="Enter Units" />
+                    </div>
+                    <div className="field">
+                      <label>Bill Amount (₹) </label>
+                      <input type="number" placeholder="Enter Amount" />
+                    </div>
+                    <div className="field">
+                      <label>Select Month</label>
+                      <DatePicker
+                        picker="month"
+                        className="month-picker"
+                        format="MMM YYYY"
+                        placeholder="Select Month"
+                        onChange={(date, dateString) => setMonth(dateString)}
+                        suffixIcon={<CalendarOutlined />}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button className="predict-btn">⚡ Predict Bill</button>
               </div>
 
-              {/* Tariff Card */}
-              <div className="tariff-card">
-
-                <h3>Tata Power Tariff Details</h3>
-
-                <div className="tariff-grid">
-
-                  <div>
-                    <h4>Fixed Charge</h4>
-                    <p>₹140 / month</p>
+              {/* RIGHT SIDE */}
+              <div className="right-panel">
+                <div className="how-card">
+                  <h3>How it works?</h3>
+                  <div className="step">
+                    <div className="step-no"> 1 </div>
+                    <p> Select the month you want to predict</p>
                   </div>
 
-                  <div>
-                    <h4>Energy Rate</h4>
-                    <p>₹7.20 / kWh</p>
+                  <div className="step">
+                    <div className="step-no"> 2 </div>
+                    <p>
+                      {" "}
+                      Enter the previous month consumption and bill amount{" "}
+                    </p>
                   </div>
 
-                  <div>
-                    <h4>FAC</h4>
-                    <p>₹0.45 / kWh</p>
+                  <div className="step">
+                    <div className="step-no"> 3 </div>
+                    <p>
+                      {" "}
+                      (Optional) Add more historical data for better
+                      accurary{" "}
+                    </p>
                   </div>
 
-                  <div>
-                    <h4>Duty</h4>
-                    <p>16%</p>
+                  <div className="step">
+                    <div className="step-no"> 4 </div>
+                    <p> Our AI model analyses your usage pattern</p>
                   </div>
 
-                  <div>
-                    <h4>Category</h4>
-                    <p>Residential</p>
+                  <div className="step">
+                    <div className="step-no"> 5 </div>
+                    <p> Get accurate prediction for next month bill </p>
                   </div>
 
-                  <div>
-                    <h4>Connection Type</h4>
-                    <p>LT</p>
+                  <div className="bulb-container">
+                    <img
+                      className="bulb-icon"
+                      src="src/assets/Bulb-images.png"
+                      alt="bulb"
+                    />
                   </div>
-
                 </div>
 
+                <div className="note-card">
+                  <h3>Note</h3>
+                  <p>More accurate input gives better prediction results.</p>
+                </div>
               </div>
-
-              {/* Previous Data */}
-              <h3>Previous Month Data</h3>
-
-              <div className="previous-grid">
-
-                <div className="field">
-                  <label>Previous Units</label>
-                  <input type="number" />
-                </div>
-
-                <div className="field">
-                  <label>Previous Bill</label>
-                  <input type="number" />
-                </div>
-
-              </div>
-
-              {/* History Box */}
-              <div className="history-box">
-
-                <h3>Add Historical Data (Optional)</h3>
-
-                <div className="history-grid">
-
-                  <input type="number" placeholder="Units" />
-                  <input type="number" placeholder="Bill Amount" />
-                  <input type="month" />
-
-                </div>
-
-              </div>
-
-              <button className="predict-btn">
-                ⚡ Predict Bill
-              </button>
-
             </div>
-
-            {/* RIGHT SIDE */}
-            <div className="right-panel">
-
-              <div className="how-card">
-
-                <h3>How it works?</h3>
-<ul>
-                <li> Select Month </li>  
-                <li> Enter Bill Details </li>  
-                <li> Add Historical Data </li>  
-                <li> AI Analysis </li>  
-                <li> Prediction </li>  
-                </ul>
-                <div className="bulb-container">
-                    <Lightbulb className="bulb-icon" />
-                </div>
-              </div>
-
-              <div className="note-card">
-                <h3>Note</h3>
-                <p>
-                  More accurate input gives better prediction results.
-                </p>
-              </div>
-
-            </div>
-
-          </div>
-        </main>
-          </div>
+          </main>
+        </div>
       </div>
     </>
   );
