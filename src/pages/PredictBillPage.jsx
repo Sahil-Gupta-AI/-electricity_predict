@@ -22,7 +22,6 @@ import { ChevronUp } from 'lucide-react';
 export default function PredictBillPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [month, setMonth] = useState("");
-  const [showTariff, setShowTariff] = useState(true);
 
   // company options
   const options = [
@@ -125,84 +124,75 @@ export default function PredictBillPage() {
 
                     </div>
 
-                    <div className={`tariff-collapse ${showTariff ? "tariff-open" : "tariff-closed"}`}>
-                      <div className="tariff-grid">
+                    <div className="tariff-grid">
+                      <div>
                         <div>
-                          <div>
-                          <LockKeyhole className="grid-logo"/>
-                          <h4>Fixed Charge</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">₹140 </p>
-                          <p>/ month</p>
-                          </div>
+                        <LockKeyhole className="grid-logo"/>
+                        <h4>Fixed Charge</h4>
                         </div>
-
                         <div>
-                          <div>
-                          <Zap className="grid-logo"/>
-                          <h4>Energy Rate</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">₹7.20 </p>
-                          <p> / kWh</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <Dessert className="grid-logo"/>
-                          <h4>FAC</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">₹0.45 </p>
-                          <p> / kWh</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <ReceiptText className="grid-logo"/>
-                          <h4>Duty</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">16%</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <HousePlus className="grid-logo"/>
-                          <h4>Category</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">Residential</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <RadioTower className="grid-logo"/>
-                          <h4>Connection Type</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">LT</p>
-                          </div>
+                        <p className="grid-values">₹140 </p>
+                        <p>/ month</p>
                         </div>
                       </div>
 
-                      <div className="close-button" onClick={() => setShowTariff(false)}>
-                        <p>Close Full Tariff Details</p>
-                        <ChevronUp className="grid-close"/>
+                      <div>
+                        <div>
+                        <Zap className="grid-logo"/>
+                        <h4>Energy Rate</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">₹7.20 </p>
+                        <p> / kWh</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <Dessert className="grid-logo"/>
+                        <h4>FAC</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">₹0.45 </p>
+                        <p> / kWh</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <ReceiptText className="grid-logo"/>
+                        <h4>Duty</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">16%</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <HousePlus className="grid-logo"/>
+                        <h4>Category</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">Residential</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div>
+                        <RadioTower className="grid-logo"/>
+                        <h4>Connection Type</h4>
+                        </div>
+                        <div>
+                        <p className="grid-values">LT</p>
+                        </div>
                       </div>
                     </div>
 
-                    {!showTariff && (
-                      <div className="open-tariff-button" onClick={() => setShowTariff(true)}>
-                        <p>View Full Tariff Details</p>
-                        <ChevronDown className="grid-close"/>
-                      </div>
-                    )}
+                    <div className="close-button">
+                      <p>Close Full Tariff Details</p>
+                      <ChevronUp className="grid-close"/>
+                    </div>
 
                   </div>
 
