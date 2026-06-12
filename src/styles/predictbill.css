@@ -341,6 +341,50 @@ ul{
   background: #e5e7eb;
 }
 
+.tariff-collapse{
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+
+.tariff-open{
+  max-height: 600px;
+  opacity: 1;
+}
+
+.tariff-closed{
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.open-tariff-button{
+  height: 40px;
+  width: 300px;
+  margin-top: 16px;
+  align-self: center;
+  display: flex;
+  background-color: #0b32b1;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 8px;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.open-tariff-button:hover{
+  background-color: #f3f4f6;
+}
+
+.open-tariff-button p{
+  color: #5b3df5;
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  font-weight: 550;
+  margin: 0;
+}
+
 .close-button{
   height:40px;
   width:300px;
@@ -348,9 +392,14 @@ ul{
   align-self:center;
   display:flex;
   color:#4f46e5;
-   background-color:#0b32b1; 
+  background-color:#0b32b1; 
   text-align:center; 
-   justify-content:center;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  border-radius:8px;
+  gap:8px;
+  transition: background-color 0.2s ease;
 }
 
 .close-button:hover{
