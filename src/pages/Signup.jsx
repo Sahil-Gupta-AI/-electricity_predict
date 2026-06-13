@@ -70,7 +70,7 @@ export default function SignupPage() {
         <h1>Create account</h1>
         <p className="subtitle">Start tracking your electricity usage for free.</p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="form" >
 
           <div className="row-two">
             <div className="field">

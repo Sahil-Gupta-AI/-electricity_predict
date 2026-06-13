@@ -7,7 +7,8 @@ import { DatePicker } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Select from "react-select";
-
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 // Symbol Or Icon Imports
 import { Info } from "lucide-react";
 import { LockKeyhole } from "lucide-react";
@@ -19,10 +20,20 @@ import { RadioTower } from "lucide-react";
 import { ChevronUp } from "lucide-react";
 
 export default  function PredictBillPage() {
+  
+  const user = JSON.parse(localStorage.getItem('user')); 
+  const userdetail = {
+      name: user?.name,
+      initials: user?.initials,
+  }
+  
   const [collapsed, setCollapsed] = useState(false);
-  const [month, setMonth] = useState("");
   const [showTariff, setShowTariff] = useState(true);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [provider, setProvider] = useState(null);
+  const navigate = useNavigate();
+  
   // company options
   const options = [
     { value: "none", label: "None" },
@@ -35,21 +46,56 @@ export default  function PredictBillPage() {
 
   const [lastudated, setLastUpdated] = useState(" 01 Jun 2024");
   const [company_status, set_company_Status] = useState("Active");
-  const [form, setForm] = useState({});
-  const [error, setError] = useState("");
 
+
+const [form , setForm] = useState({
+  month:"",
+  amount:"",
+  unit:"",
+  amount2:"",
+  unit2:"",
+  month2:""
+})
   function handleChange(e) {
     const { id, value } = e.target;
+
     setForm(prev => ({
       ...prev,
       [id]: value
     }));
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
+async function handleSubmit(e) {
+e.preventDefault();
+  setError("");
+
+  try{
+    setLoading(true);
+
+    const res = await axios.post(
+      "/api/predict",
+      {
+        month:form.month,
+        amount:form.amount,
+        unit:form.unit
+      }
+    );
+    navigate("/result", {
+      state: {
+        prediction: res.data.prediction
+      }
+    });
+    
+  } catch (err) {
+    setError(
+      err.response?.data?.message || "Something went wrong"
+    );
+  } finally {
+    setLoading(false);
   }
+}
+
+  
   // ML Model Integration
   // const predictBill = async ()=>{
 
@@ -85,8 +131,8 @@ export default  function PredictBillPage() {
               </div>
 
               <div className="profile">
-                <div className="avatar">A</div>
-                Amit Kumar
+                <div className="avatar">{user?.initials}</div>
+                {userdetail.name}
                 <ChevronDown />
               </div>
             </div>
@@ -101,7 +147,7 @@ export default  function PredictBillPage() {
             <div className="predict-layout">
               {/* LEFT SIDE */}
               <div className="form-card">
-                <form>
+                <form onSubmit={handleSubmit}>
                 <h2>Enter Information</h2>
                 <p>All fields are required</p>
 
@@ -110,10 +156,17 @@ export default  function PredictBillPage() {
                     <label>Select Month</label>
                     <DatePicker
                       picker="month"
+                      inputReadOnly={true}
+                      required
                       className="month-picker"
                       format="MMM YYYY"
                       placeholder="Select Month"
-                      onChange={(date, dateString) => setMonth(dateString)}
+                      onChange={(date, dateString) =>
+                        setForm(prev => ({
+                          ...prev,
+                          month: dateString
+                        }))
+                      }
                       suffixIcon={<CalendarOutlined />}
                     />
                   </div>
@@ -260,12 +313,12 @@ export default  function PredictBillPage() {
                 <div className="previous-grid">
                   <div className="field">
                     <label>Previous Month Units (kWh)</label>
-                    <input type="number" placeholder="Enter units" onChange={handleChange}/>
+                    <input type="number" min="0" placeholder="Enter units" id="unit" value={form.unit} onChange={handleChange} required/>
                   </div>
 
                   <div className="field">
                     <label>Previous Month Bill Amount (₹) </label>
-                    <input type="number" placeholder="Enter amount" onChange={handleChange}/>
+                    <input type="number" min="0" placeholder="Enter amount" id="amount" value={form.amount} onChange={handleChange} required/>
                   </div>
                 </div>
 
@@ -279,27 +332,38 @@ export default  function PredictBillPage() {
                   <div className="history-grid">
                     <div className="field">
                       <label>Units (kWh) </label>
-                      <input type="number" placeholder="Enter Units" />
+                      <input type="number" id="unit2"  placeholder="Enter Units" required value={form.unit2} onChange={handleChange} required/>
                     </div>
                     <div className="field">
                       <label>Bill Amount (₹) </label>
-                      <input type="number" placeholder="Enter Amount" />
+                      <input type="number" id="amount2" placeholder="Enter Amount" value={form.amount2} onChange={handleChange} required/>
                     </div>
                     <div className="field">
                       <label>Select Month</label>
                       <DatePicker
                         picker="month"
+                        inputReadOnly={true}
                         className="month-picker"
                         format="MMM YYYY"
                         placeholder="Select Month"
-                        onChange={(date, dateString) => setMonth(dateString)}
+                        onChange={(date, dateString) =>
+                          setForm(prev => ({
+                            ...prev,
+                            month2: dateString
+                          }))
+                        }
                         suffixIcon={<CalendarOutlined />}
                       />
                     </div>
                   </div>
                 </div>
 
-                <button className="predict-btn">⚡ Predict Bill</button>
+                  <button
+                    className="predict-btn"
+                    type="submit"
+                    disabled={loading}>
+                    {loading ? "Predicting..." : "⚡ Predict Bill"}
+                  </button>
                   </form>
               </div>
 

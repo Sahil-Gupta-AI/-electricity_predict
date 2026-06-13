@@ -56,7 +56,7 @@ export default function LoginPage() {
         <h1>Log in</h1>
         <p className="subtitle">Welcome back. Enter your details below.</p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="form">
 
           <div className="field">
             <label htmlFor="email">Email</label>
