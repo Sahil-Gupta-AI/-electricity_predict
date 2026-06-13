@@ -8,7 +8,6 @@ import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Select from "react-select";
 
-
 // Symbol Or Icon Imports
 import { Info } from "lucide-react";
 import { LockKeyhole } from "lucide-react";
@@ -17,9 +16,9 @@ import { Dessert } from "lucide-react";
 import { ReceiptText } from "lucide-react";
 import { HousePlus } from "lucide-react";
 import { RadioTower } from "lucide-react";
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp } from "lucide-react";
 
-export default function PredictBillPage() {
+export default  function PredictBillPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [month, setMonth] = useState("");
   const [showTariff, setShowTariff] = useState(true);
@@ -33,9 +32,46 @@ export default function PredictBillPage() {
     { value: "msedcl", label: "MSEDCL (Mahavitaran)" },
     { value: "torrent", label: "Torrent Power" },
   ];
-  
-  const [lastudated, setLastUpdated] = useState(" 01 Jun 2024")
+
+  const [lastudated, setLastUpdated] = useState(" 01 Jun 2024");
   const [company_status, set_company_Status] = useState("Active");
+  const [form, setForm] = useState({});
+  const [error, setError] = useState("");
+
+  function handleChange(e) {
+    const { id, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+  }
+  // ML Model Integration
+  // const predictBill = async ()=>{
+
+  //     const response =await fetch(
+  //         "http://localhost:3000/predict",
+  //         {
+  //             method:"POST",
+  //             headers:{
+  //                 "Content-Type":"application/json"
+  //             },
+  //             body:JSON.stringify({
+  //                 month,
+  //                 amount,
+  //                 unit
+  //             })
+  //         }
+  //     );
+  //     const data=await response.json();
+  //     setPrediction(data.prediction);
+  // };
+
+  
   return (
     <>
       <div className="layout">
@@ -65,6 +101,7 @@ export default function PredictBillPage() {
             <div className="predict-layout">
               {/* LEFT SIDE */}
               <div className="form-card">
+                <form>
                 <h2>Enter Information</h2>
                 <p>All fields are required</p>
 
@@ -89,7 +126,7 @@ export default function PredictBillPage() {
                       classNamePrefix="provider"
                       placeholder="Select Provider"
                       components={{
-                        IndicatorSeparator: () => null
+                        IndicatorSeparator: () => null,
                       }}
                     />
                   </div>
@@ -97,131 +134,138 @@ export default function PredictBillPage() {
 
                 {/* Tariff Card */}
                 <div className="company-box">
-                <div className="company-detail">
+                  <div className="company-detail">
+                    <div className="company-logo">
+                      <img
+                        src="src/assets/tata-power-logo.png"
+                        alt="Tata Power"
+                      />
+                    </div>
 
-                  <div className="company-logo">
-                    <img src="src/assets/tata-power-logo.png" alt="Tata Power" />
-                  </div>
+                    <div className="company-info">
+                      <div className="company-header">
+                        <div className="left-header">
+                          <h3>Tata Power Tariff Details</h3>
 
-                  <div className="company-info">
+                          <div className="company-status">
+                            <p className="company-status-button">
+                              {company_status}
+                            </p>
+                          </div>
+                        </div>
 
-                    <div className="company-header">
-
-                      <div className="left-header">
-                        <h3>Tata Power Tariff Details</h3>
-
-                        <div className="company-status">
-                          <p className="company-status-button">
-                            {company_status}
+                        <div className="last-update">
+                          <p className="last-update-p">
+                            Last Updated: {lastudated}
                           </p>
+                          <Info />
                         </div>
                       </div>
 
-                      <div className="last-update">
-                        <p className="last-update-p">
-                          Last Updated: {lastudated}
-                        </p>
-                        <Info />
+                      <div
+                        className={`tariff-collapse ${showTariff ? "tariff-open" : "tariff-closed"}`}
+                      >
+                        <div className="tariff-grid">
+                          <div>
+                            <div>
+                              <LockKeyhole className="grid-logo" />
+                              <h4>Fixed Charge</h4>
+                            </div>
+                            <div>
+                              <p className="grid-values">₹140 </p>
+                              <p>/ month</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div>
+                              <Zap className="grid-logo" />
+                              <h4>Energy Rate</h4>
+                            </div>
+                            <div>
+                              <p className="grid-values">₹7.20 </p>
+                              <p> / kWh</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div>
+                              <Dessert className="grid-logo" />
+                              <h4>FAC</h4>
+                            </div>
+                            <div>
+                              <p className="grid-values">₹0.45 </p>
+                              <p> / kWh</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div>
+                              <ReceiptText className="grid-logo" />
+                              <h4>Duty</h4>
+                            </div>
+                            <div>
+                              <p className="grid-values">16%</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div>
+                              <HousePlus className="grid-logo" />
+                              <h4>Category</h4>
+                            </div>
+                            <div>
+                              <p className="grid-values">Residential</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div>
+                              <RadioTower className="grid-logo" />
+                              <h4>Connection Type</h4>
+                            </div>
+                            <div>
+                              <p className="grid-values">LT</p>
+                            </div>
+                          </div>
+                        </div>
+
                       </div>
 
                     </div>
-
-                    <div className={`tariff-collapse ${showTariff ? "tariff-open" : "tariff-closed"}`}>
-                      <div className="tariff-grid">
-                        <div>
-                          <div>
-                          <LockKeyhole className="grid-logo"/>
-                          <h4>Fixed Charge</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">₹140 </p>
-                          <p>/ month</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <Zap className="grid-logo"/>
-                          <h4>Energy Rate</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">₹7.20 </p>
-                          <p> / kWh</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <Dessert className="grid-logo"/>
-                          <h4>FAC</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">₹0.45 </p>
-                          <p> / kWh</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <ReceiptText className="grid-logo"/>
-                          <h4>Duty</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">16%</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <HousePlus className="grid-logo"/>
-                          <h4>Category</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">Residential</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <div>
-                          <RadioTower className="grid-logo"/>
-                          <h4>Connection Type</h4>
-                          </div>
-                          <div>
-                          <p className="grid-values">LT</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="close-button" onClick={() => setShowTariff(false)}>
-                        <p>Close Full Tariff Details</p>
-                        <ChevronUp className="grid-close"/>
-                      </div>
-                    </div>
-
-                    {!showTariff && (
-                      <div className="open-tariff-button" onClick={() => setShowTariff(true)}>
-                        <p>View Full Tariff Details</p>
-                        <ChevronDown className="grid-close"/>
-                      </div>
-                    )}
-
                   </div>
-
+                {showTariff ? (
+                  <div
+                    className="close-button"
+                    onClick={() => setShowTariff(false)}
+                  >
+                    <p>Close Full Tariff Details</p>
+                    <ChevronUp className="grid-close" />
+                  </div>
+                ) : (
+                  <div
+                    className="open-tariff-button"
+                    onClick={() => setShowTariff(true)}
+                  >
+                    <p>View Full Tariff Details</p>
+                    <ChevronDown className="grid-close" />
+                  </div>
+                )}
                 </div>
-              </div>
 
+              
                 {/* Previous Data */}
                 <h3>Previous Month Data</h3>
 
                 <div className="previous-grid">
                   <div className="field">
                     <label>Previous Month Units (kWh)</label>
-                    <input type="number" placeholder="Enter units" />
+                    <input type="number" placeholder="Enter units" onChange={handleChange}/>
                   </div>
 
                   <div className="field">
                     <label>Previous Month Bill Amount (₹) </label>
-                    <input type="number" placeholder="Enter amount" />
+                    <input type="number" placeholder="Enter amount" onChange={handleChange}/>
                   </div>
                 </div>
 
@@ -256,6 +300,7 @@ export default function PredictBillPage() {
                 </div>
 
                 <button className="predict-btn">⚡ Predict Bill</button>
+                  </form>
               </div>
 
               {/* RIGHT SIDE */}

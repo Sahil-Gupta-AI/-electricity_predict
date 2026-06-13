@@ -21,10 +21,7 @@ app.get("/", (req, res) => {
   res.send("API Running...");
   console.log("Server is run on / port")
 });
-app.get("/test", (req, res) => {
-  console.log("Test route accessed");
-  res.json({ message: "Server is working" });
-});
+
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
