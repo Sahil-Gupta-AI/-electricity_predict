@@ -169,8 +169,8 @@ export default function PredictBillPage() {
       console.log(res.data);
       navigate("/home", {
         state: {
-          amount: res.data.amount,
-          unit: res.data.unit,
+          amount: form.amount,
+          unit: form.unit,
           nextMonth: nextMonth,
           month: form.month,
           predictUnit: res.data.predictUnit,
@@ -184,26 +184,6 @@ export default function PredictBillPage() {
     }
   }
 
-  // ML Model Integration
-  // const predictBill = async ()=>{
-
-  //     const response =await fetch(
-  //         "http://localhost:3000/predict",
-  //         {
-  //             method:"POST",
-  //             headers:{
-  //                 "Content-Type":"application/json"
-  //             },
-  //             body:JSON.stringify({
-  //                 month,
-  //                 amount,
-  //                 unit
-  //             })
-  //         }
-  //     );
-  //     const data=await response.json();
-  //     setPrediction(data.prediction);
-  // };
 
   function handleLogout() {
     localStorage.removeItem("user");
