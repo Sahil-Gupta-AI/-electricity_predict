@@ -436,6 +436,7 @@ export default function PredictBillPage() {
                       <input
                         type="number"
                         min="0"
+                        step="any"
                         placeholder="Enter units"
                         id="unit"
                         value={form.unit}
@@ -450,6 +451,7 @@ export default function PredictBillPage() {
                        <div className="input-wrapper">
                       <input
                         type="number"
+                        step="any"
                         min="0"
                         placeholder="Enter amount"
                         id="amount"
@@ -475,6 +477,8 @@ export default function PredictBillPage() {
                         <div className="input-wrapper">
                         <input
                           type="number"
+                          min="0"
+                          step="any"
                           id="unit2"
                           placeholder="Enter Units"
                           value={form.unit2}
@@ -488,6 +492,8 @@ export default function PredictBillPage() {
                          <div className="input-wrapper">
                         <input
                           type="number"
+                          min="0"
+                          step="any"
                           id="amount2"
                           placeholder="Enter Amount"
                           value={form.amount2}
