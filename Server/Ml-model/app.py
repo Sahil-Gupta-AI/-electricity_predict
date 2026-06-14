@@ -81,7 +81,7 @@ def predict():
     predictUnit = round(float(ensemble_model.predict(df)[0]), 2)
 
     print("Prediction result:", predictUnit)
-    predictAmount = round(predictUnit * 8.2, 0)
+    predictAmount = round(predictUnit * 8.2, 2)
     return jsonify({
         "predictUnit": predictUnit,
         "month": month,
