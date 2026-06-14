@@ -443,7 +443,7 @@ export default function PredictBillPage() {
                     </div>
                   </div>
 
-                  {/* History Box */}
+          
                   <div className="history-box">
                     <h3>Add Previous Previous Month Data (Optional)</h3>
                     <p>
