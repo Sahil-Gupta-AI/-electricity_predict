@@ -1,0 +1,256 @@
+Update only the UI of the Prediction Circle and Bill History Graph. Do NOT modify backend, routes, state management, prediction logic, or existing variables. Keep using the current variables:
+
+```js
+amount
+predictAmount
+unit
+predictUnit
+month
+nextMonth
+```
+
+# 1. Prediction Circle
+
+Remove the hardcoded ₹2730 and replace it with:
+
+```jsx
+₹{predictAmount}
+Predicted Bill
+```
+
+The circular progress should NOT depend on percentage change.
+
+Instead, use a fixed maximum bill value:
+
+```js
+const MAX_BILL = 7000;
+
+const progress = Math.min(
+  (predictAmount / MAX_BILL) * 100,
+  100
+);
+```
+
+Examples:
+
+* ₹1750 = 25%
+* ₹3500 = 50%
+* ₹5250 = 75%
+* ₹7000 = 100%
+* Any value above ₹7000 remains capped at 100%
+
+Create an animated conic-gradient ring:
+
+```css
+background:
+conic-gradient(
+  #6D4AFF 0deg,
+  #7B61FF calc(var(--progress) * 3.6deg),
+  #E5E7EB calc(var(--progress) * 3.6deg)
+);
+```
+
+Ring requirements:
+
+* thickness around 18px
+* soft shadow
+* smooth 1.5s animation
+* rounded appearance
+* light gray remaining section
+
+Center:
+
+* large bold amount
+* "Predicted Bill" below
+
+---
+
+# Percentage Badge
+
+Calculate:
+
+```js
+const percentageChange =
+((predictAmount - amount) / amount) * 100;
+```
+
+If positive:
+
+```jsx
+↑ {percentageChange.toFixed(2)}% from last month
+```
+
+Badge:
+
+* background #DCFCE7
+* text #16A34A
+* rounded pill
+* small shadow
+
+If negative:
+
+```jsx
+↓ {Math.abs(percentageChange).toFixed(2)}% from last month
+```
+
+Badge:
+
+* background #FEE2E2
+* text #DC2626
+
+Keep the "Predict Again" button unchanged except for improving hover animation.
+
+---
+
+# 2. Bill History Graph
+
+Currently there is hardcoded chart data.
+
+Remove:
+
+```js
+[
+{month:"Jan",bill:1000},
+{month:"Feb",bill:1500}
+]
+```
+
+Generate chart data dynamically from:
+
+```js
+amount
+predictAmount
+month
+nextMonth
+```
+
+The last two points should always be:
+
+```js
+{
+month,
+bill: amount
+}
+
+{
+month: nextMonth,
+bill: predictAmount
+}
+```
+
+Generate previous months automatically to create six points.
+
+The chart must automatically update whenever:
+
+* amount changes
+* predictAmount changes
+* month changes
+* nextMonth changes
+
+Never hardcode values.
+
+---
+
+# Chart Design
+
+Use AreaChart.
+
+Gradient:
+
+```jsx
+<linearGradient id="billGradient">
+<stop offset="5%" stopColor="#6D4AFF" stopOpacity={0.35}/>
+<stop offset="95%" stopColor="#6D4AFF" stopOpacity={0}/>
+</linearGradient>
+```
+
+Area:
+
+```jsx
+stroke="#6D4AFF"
+strokeWidth={3}
+fill="url(#billGradient)"
+type="monotone"
+animationDuration={1500}
+```
+
+Dot:
+
+```jsx
+dot={{
+r:6,
+strokeWidth:3
+}}
+```
+
+Active dot:
+
+```jsx
+activeDot={{
+r:8
+}}
+```
+
+Grid:
+
+```jsx
+<CartesianGrid
+vertical={false}
+stroke="#E5E7EB"
+/>
+```
+
+Remove vertical lines.
+
+Tooltip:
+
+* border radius 16px
+* shadow
+* clean modern card appearance
+
+YAxis should NOT use:
+
+```jsx
+ticks={[0,1000,2000,3000]}
+```
+
+Instead generate ticks automatically based on the highest bill value:
+
+* 0%
+* 25%
+* 50%
+* 75%
+* 100%
+
+of the maximum bill.
+
+---
+
+# Design Style
+
+Make both cards look like Stripe/Vercel dashboards.
+
+Use:
+
+* border-radius: 24px
+* soft shadows
+* smooth transitions
+* premium spacing
+* subtle hover effects
+* modern typography
+
+Do NOT:
+
+* change backend
+* change prediction model
+* change routes
+* remove components
+* hardcode values
+
+Only improve JSX and CSS while ensuring the circle always represents:
+
+```js
+predictAmount / 7000
+```
+
+and the graph always reflects real prediction data.

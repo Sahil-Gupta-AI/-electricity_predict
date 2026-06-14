@@ -50,7 +50,7 @@ router.post("/predict", async (req, res) => {
 
     try {
 
-        const { month, unit, amount } = req.body;
+        const { month, unit, amount,fixedCharge,energyRate,fac,duty } = req.body;
 
         console.log(req.body);
 
@@ -59,7 +59,11 @@ router.post("/predict", async (req, res) => {
             {
                 month,
                 unit,
-                amount
+                amount,
+                fixedCharge,
+                energyRate,
+                fac,
+                duty
             }
         );
         console.log("Flask replied");

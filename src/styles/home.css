@@ -226,15 +226,14 @@ ul{
 }
 
 .second-row-first-box{
-    background:white;
-    border-radius:12px;
-    padding:32px;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    min-height:340px;
-    
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 340px;
 }
 
 .prediction-title{
@@ -246,105 +245,124 @@ ul{
     text-align: center;
 }
 
+@property --progress {
+  syntax: '<number>';
+  initial-value: 0;
+  inherits: false;
+}
+
 .prediction-circle{
-    width:220px;
-    height:220px;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:
-    conic-gradient(
-        #6d4aff 0deg 290deg,
-        #e5e7eb 290deg 360deg
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    --progress: 0;
+    background: conic-gradient(
+        #6D4AFF 0deg,
+        #7B61FF calc(var(--progress) * 3.6deg),
+        #E5E7EB calc(var(--progress) * 3.6deg)
     );
+    transition: --progress 1.5s ease;
+    box-shadow: 0 8px 32px rgba(109, 74, 255, 0.18);
 }
 
 .prediction-center{
-    width:170px;
-    height:170px;
-    background:white;
-    border-radius:50%;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
+    width: 178px;
+    height: 178px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .prediction-center h1{
-    font-size:38px;
-    font-weight:700;
-    color:#111827;
+    font-size: 32px;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.5px;
 }
 
 .prediction-center p{
-    color:#6b7280;
-    font-size:15px;
+    color: #6b7280;
+    font-size: 13px;
+    margin-top: 2px;
 }
 
-.prediction-status{
-    margin-top:18px;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    background:#eefbf3;
-    padding:10px 16px;
-    border-radius:10px;
+.prediction-badge {
+    margin-top: 18px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
     margin-bottom: 4px;
 }
 
-.prediction-status span{
-    color:#22c55e;
-    font-weight:600;
+.badge-up {
+    background: #DCFCE7;
+    color: #16A34A;
 }
 
-.prediction-status p{
-    color:#6b7280;
-    font-family: "Roboto", sans-serif;
+.badge-down {
+    background: #FEE2E2;
+    color: #DC2626;
 }
 
 .predict-btn{
-    margin-top:auto;
-    width:100%;
-    height:48px;
-    border:none;
-    border-radius:10px;
-    background:linear-gradient(
-      90deg,
-      #5b3df5,
-      #6d28d9
-    );
-
-    color:white;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-    transition: all 0.3s ease;
+    margin-top: auto;
+    width: 100%;
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #5b3df5, #6d28d9);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
 .predict-btn:hover{
-  width:95%;
-  height:47px;
-  font-size:15.5px;
-  transform: translateY(-2px);
-  background:linear-gradient(
-      90deg,
-       #8b5cf6,
-       #ec4899
-    );
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(109, 74, 255, 0.35);
+    background: linear-gradient(90deg, #7c3aed, #a855f7);
+}
+
+.chart-tooltip {
+    background: white;
+    border-radius: 16px;
+    padding: 12px 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border: 1px solid #f0f0f0;
+}
+
+.tooltip-month {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.tooltip-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
 }
 
 .second-row-second-box {
     background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
     display: flex;
     flex-direction: column;
     width: 100%;
-    align-items:stretch;
-    
-    
+    align-items: stretch;
 }
 
 .second-row-second-box h3 {

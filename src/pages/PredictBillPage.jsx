@@ -96,7 +96,7 @@ export default function PredictBillPage() {
     best: {
       logo: "src/assets/Best-power-logo.png",
       name: "BEST Power Tariff Details",
-      fixedCharge: "₹120",
+      fixedCharge: "₹125",
       energyRate: "₹6.90",
       fac: "₹0.40",
       duty: "16%",
@@ -165,6 +165,10 @@ export default function PredictBillPage() {
         month: form.month,
         amount: form.amount,
         unit: form.unit,
+        fixedCharge: selectedCompany.fixedCharge,
+        energyRate: selectedCompany.energyRate,
+        fac: selectedCompany.fac,
+        duty: selectedCompany.duty,
       });
       console.log(res.data);
       navigate("/home", {
@@ -273,7 +277,7 @@ export default function PredictBillPage() {
                     </div>
                   </div>
 
-                  {/* Tariff Card */}
+                
                   {selectedCompany && (
                     <div className="company-box">
                       <div className="company-detail">
@@ -337,7 +341,7 @@ export default function PredictBillPage() {
                               <div>
                                 <div>
                                   <Dessert className="grid-logo" />
-                                  <h4>FAC</h4>
+                                  <h4>Fuel Adjustment Charge (FAC)</h4>
                                 </div>
                                 <div>
                                   <p className="grid-values">

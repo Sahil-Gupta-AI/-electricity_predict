@@ -80,8 +80,23 @@ def predict():
 
     predictUnit = round(float(ensemble_model.predict(df)[0]), 2)
 
-    print("Prediction result:", predictUnit)
-    predictAmount = round(predictUnit * 8.2, 2)
+    # Amount 
+    def calculate_amount(units):
+        fixed_charge = 110
+        energy_rate = 6.50
+        fac_rate = 0.38
+        duty_rate = 0.16
+
+        # Charges
+        energy_charge = units * energy_rate
+        fac_charge = units * fac_rate
+
+        # Subtotal before duty
+        subtotal = fixed_charge + energy_charge + fac_charge
+        duty = subtotal * duty_rate
+        total_amount = subtotal + duty
+        return round(total_amount, 2)
+    predictAmount = calculate_amount(predictUnit)
     return jsonify({
         "predictUnit": predictUnit,
         "month": month,
