@@ -76,6 +76,37 @@ ul{
     padding:8px 14px;
     border-radius:10px;
     font-weight:500;
+    position: relative;
+}
+
+.profile-dropdown{
+  position: absolute;
+  top: 50px;
+  right: 0;
+
+  width: 120px;
+
+  background: white;
+  border-radius: 10px;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.dropdown-item{
+  padding: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.dropdown-item:hover{
+  background: #f3f4f6;
+}
+
+.logout{
+  color: #ef4444;
+  font-weight: 600;
 }
 
 .avatar{

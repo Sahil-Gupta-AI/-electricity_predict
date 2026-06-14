@@ -11,6 +11,8 @@ import { Snowflake } from "lucide-react";
 import { Lightbulb } from "lucide-react";
 import { PlugZap } from "lucide-react";
 import Sidebar_Menu from "./Sidebar_Menu";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 /* BILL CHARTS IMPORT*/
 import { LineChart } from "recharts";
@@ -24,9 +26,13 @@ import { ResponsiveContainer } from "recharts";
 import { Area } from "recharts";
 import { AreaChart } from "recharts";
 
+
 export default function home() {
    
     const [collapsed, setCollapsed] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const navigate = useNavigate();
+    
     const user = JSON.parse(localStorage.getItem('user')); 
     
     const userdetail = {
@@ -41,6 +47,21 @@ export default function home() {
         { month: "May", bill: 2450 },
         { month: "Jun", bill: 2750 },
     ];
+
+    const location = useLocation();
+    
+    const amount = location.state?.amount;
+    const unit = location.state?.unit;
+    const predictUnit = location.state?.predictUnit;
+    const predictAmount = location.state?.predictAmount;
+    const month = location.state?.month;
+    const nextMonth = location.state?.nextMonth;
+
+    function handleLogout() {
+      localStorage.removeItem("user");
+      navigate("/login");
+    }
+
     return (
         <>
             <div className="layout">
@@ -54,10 +75,23 @@ export default function home() {
                             >
                                 <Menu />
                             </div>
-                            <div className="profile">
-                                <div className="avatar">{user?.initials}</div>
-                                {userdetail.name}
-                                <ChevronDown />
+                            <div
+                              className="profile"
+                              onClick={() => setShowProfileMenu(!showProfileMenu)}>
+                              <div className="avatar">{user?.initials}</div>
+                              {userdetail.name}
+                              <ChevronDown />
+
+                              {showProfileMenu && (
+                                <div className="profile-dropdown">
+                                  <div
+                                    className="dropdown-item logout"
+                                    onClick={handleLogout}
+                                  >
+                                    Logout
+                                  </div>
+                                </div>
+                              )}
                             </div>
                         </div>
                     </header>
@@ -74,8 +108,8 @@ export default function home() {
                                 </div>
                                 <div className="first-row-box-box">
                                     <p className="box-text">Last Month Units</p>
-                                    <p className="box-values">320 KWh</p>
-                                    <p className="box-date">May 2026</p>
+                                    <p className="box-values">{unit} KWh</p>
+                                    <p className="box-date">{month}</p>
                                 </div>
                             </div>
                             <div className="first-row-box">
@@ -87,8 +121,8 @@ export default function home() {
                                 </div>
                                 <div className="first-row-box-box">
                                     <p className="box-text">Last Month Bills</p>
-                                    <p className="box-values">₹2,450</p>
-                                    <p className="box-date">May 2026</p>
+                                    <p className="box-values">₹{amount}</p>
+                                    <p className="box-date">{month}</p>
                                 </div>
                             </div>
                             <div className="first-row-box">
@@ -102,8 +136,8 @@ export default function home() {
                                     <p className="box-text">
                                         Predicted Month Units
                                     </p>
-                                    <p className="box-values">350 KWh</p>
-                                    <p className="box-date">June 2026</p>
+                                    <p className="box-values">{predictUnit} KWh</p>
+                                    <p className="box-date">{nextMonth}</p>
                                 </div>
                             </div>
                             <div className="first-row-box">
@@ -117,8 +151,8 @@ export default function home() {
                                     <p className="box-text">
                                         Predicted Month Bills
                                     </p>
-                                    <p className="box-values">₹2,730</p>
-                                    <p className="box-date">June 2026</p>
+                                    <p className="box-values">₹{predictAmount}</p>
+                                    <p className="box-date">{nextMonth}</p>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +173,8 @@ export default function home() {
                                     <span>↑ 11.43%</span>
                                     <p>more than last month</p>
                                 </div>
-                                <button className="predict-btn">
+                                <button className="predict-btn"
+                                    onClick={()=> navigate("/predictbill")}>
                                     Predict Again
                                 </button>
                             </div>

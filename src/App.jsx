@@ -4,16 +4,25 @@ import HomePage from "./pages/home";
 import Login from "./pages/login";
 import Signup from "./pages/Signup";
 import PredictBillPage from "./pages/PredictBillPage";
+import ProtectedRoute from "./pages/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/Home" element={<HomePage />}/>
+        <Route path="/Home" element={
+          <ProtectedRoute>
+        <HomePage />
+          </ProtectedRoute> 
+        }  />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/predictbill" element={<PredictBillPage />} />
+        <Route path="/predictbill" element={
+          <ProtectedRoute>
+        <PredictBillPage />
+          </ProtectedRoute>  
+            } />
       </Routes>
     </BrowserRouter>
   );

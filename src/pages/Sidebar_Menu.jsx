@@ -54,11 +54,7 @@ return (
                           <UserPen className="logo-button" /> {!collapsed && <span>Profile{" "}</span>}
                       </a>
                   </li>
-                  <li>
-                      <a>
-                          <LogOut className="logo-button" /> {!collapsed && <span>Logout{" "}</span>}
-                      </a>
-                  </li>
+                  
               </ul>
           </aside>
  </>
