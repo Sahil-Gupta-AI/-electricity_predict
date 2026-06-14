@@ -47,7 +47,7 @@ def predict():
     units = float(data["unit"])
     amount = float(data["amount"])
 
-    # Handle both numeric (6) and string ("Jun 2026") month formats
+   
     if isinstance(month_raw, int):
         month = month_raw
     else:
@@ -82,7 +82,12 @@ def predict():
 
     print("Prediction result:", predictUnit)
 
-    return jsonify({"predictUnit": predictUnit})
+    return jsonify({
+        "predictUnit": predictUnit,
+        "month": month,
+        "units": units,
+        "amount": amount
+                   })
 
 
 if __name__ == "__main__":

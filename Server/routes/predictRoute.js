@@ -62,9 +62,11 @@ router.post("/predict", async (req, res) => {
                 amount
             }
         );
-        console.log("Flask replied:", response.data);
-        console.log("Returning response to React");
+        console.log("Flask replied");
+        console.log(response.data);
         res.status(200).json(response.data);
+        console.log("Node reached");
+        console.log(req.body);
 
     } catch (error) {
 
