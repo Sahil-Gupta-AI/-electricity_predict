@@ -1,0 +1,150 @@
+.bh-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.bh-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.bh-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bh-stat-label {
+    font-size: 13px;
+    color: #84878f;
+    font-family: "Roboto", sans-serif;
+}
+
+.bh-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.3px;
+}
+
+.bh-stat-sub {
+    font-size: 13px;
+    color: #6D4AFF;
+    font-weight: 600;
+}
+
+.bh-main-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.bh-chart-card,
+.bh-table-card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+
+.bh-chart-card h3,
+.bh-table-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 20px;
+}
+
+.bh-tooltip {
+    background: white;
+    border-radius: 14px;
+    padding: 10px 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border: 1px solid #f0f0f0;
+}
+
+.bh-tooltip-month {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 3px;
+}
+
+.bh-tooltip-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.bh-table-wrap {
+    overflow-y: auto;
+    max-height: 340px;
+}
+
+.bh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.bh-table thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
+
+.bh-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.bh-table td {
+    padding: 12px 14px;
+    color: #374151;
+    border-bottom: 1px solid #f9fafb;
+    font-family: "Roboto", sans-serif;
+}
+
+.bh-table tr:last-child td {
+    border-bottom: none;
+}
+
+.bh-table tr:hover td {
+    background: #fafbff;
+}
+
+.bh-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.bh-badge.paid {
+    background: #DCFCE7;
+    color: #16A34A;
+}
+
+.bh-badge.pending {
+    background: #FEF9C3;
+    color: #B45309;
+}

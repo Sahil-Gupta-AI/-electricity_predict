@@ -81,22 +81,89 @@ def predict():
     predictUnit = round(float(ensemble_model.predict(df)[0]), 2)
 
     # Amount 
-    def calculate_amount(units):
-        fixed_charge = 110
-        energy_rate = 6.50
-        fac_rate = 0.38
-        duty_rate = 0.16
+    # def calculate_amounts(units):
+    #     fixed_charge = 110
+    #     energy_rate = 6.50
+    #     fac_rate = 0.38
+    #     duty_rate = 0.16
 
-        # Charges
-        energy_charge = units * energy_rate
-        fac_charge = units * fac_rate
+    #     # Charges
+    #     energy_charge = units * energy_rate
+    #     fac_charge = units * fac_rate
 
-        # Subtotal before duty
-        subtotal = fixed_charge + energy_charge + fac_charge
-        duty = subtotal * duty_rate
-        total_amount = subtotal + duty
-        return round(total_amount, 2)
-    predictAmount = calculate_amount(predictUnit)
+    #     # Subtotal before duty
+    #     subtotal = fixed_charge + energy_charge + fac_charge
+    #     duty = subtotal * duty_rate
+    #     total_amount = subtotal + duty
+    #     return round(total_amount, 2)
+
+    # def calculate_amount(units):
+    #     fixed_charge = 130
+    #     duty_rate = 0.16
+
+    #     energy_charge = 0
+    #     fac_charge = 0
+
+    #     if units <= 100:
+    #         energy_charge += units * 4.28
+    #         fac_charge += units * 0.10
+
+    #     elif units <= 300:
+    #         energy_charge += 100 * 4.28
+    #         energy_charge += (units - 100) * 11.10
+
+    #         fac_charge += 100 * 0.10
+    #         fac_charge += (units - 100) * 0.15
+
+    #     elif units <= 500:
+    #         energy_charge += 100 * 4.28
+    #         energy_charge += 200 * 11.10
+    #         energy_charge += (units - 300) * 15.38
+
+    #         fac_charge += 100 * 0.10
+    #         fac_charge += 200 * 0.15
+    #         fac_charge += (units - 300) * 0.20
+
+    #     elif units <= 1000:
+    #         energy_charge += 100 * 4.28
+    #         energy_charge += 200 * 11.10
+    #         energy_charge += 200 * 15.38
+    #         energy_charge += (units - 500) * 17.68
+
+    #         fac_charge += 100 * 0.10
+    #         fac_charge += 200 * 0.15
+    #         fac_charge += 200 * 0.20
+    #         fac_charge += (units - 500) * 0.20
+
+    #     else:
+    #         energy_charge += 100 * 4.28
+    #         energy_charge += 200 * 11.10
+    #         energy_charge += 200 * 15.38
+    #         energy_charge += 500 * 17.68
+    #         energy_charge += (units - 1000) * 17.68
+
+    #         fac_charge += 100 * 0.10
+    #         fac_charge += 200 * 0.15
+    #         fac_charge += 200 * 0.20
+    #         fac_charge += 500 * 0.20
+    #         fac_charge += (units - 1000) * 0.20
+
+    #     subtotal = fixed_charge + energy_charge + fac_charge
+    #     duty = subtotal * duty_rate
+
+    #     return round(subtotal + duty, 2)
+
+
+    def calculate_amount(predicted_units, current_units, current_amount):
+        if current_units <= 0:
+            return current_amount
+
+        predicted_amount = current_amount * (predicted_units / current_units)
+
+        return round(predicted_amount, 2)
+    
+    
+    predictAmount = calculate_amount(predictUnit, units, amount)
     return jsonify({
         "predictUnit": predictUnit,
         "month": month,

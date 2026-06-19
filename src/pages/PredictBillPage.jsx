@@ -74,7 +74,7 @@ export default function PredictBillPage() {
     msedcl: {
       logo: "src/assets/MSEDCL-logo.png",
       name: "MSEDCL Tariff Details",
-      fixedCharge: "₹110",
+      fixedCharge: "₹140",
       energyRate: "₹6.50",
       fac: "₹0.38",
       duty: "16%",
@@ -109,7 +109,7 @@ export default function PredictBillPage() {
     provider && provider.value !== "none" ? providerData[provider.value] : null;
 
   // Tariff Details
-  const [lastudated, setLastUpdated] = useState(" 01 Jun 2024");
+  const [lastudated, setLastUpdated] = useState(" 01 Mar 2026");
   const [company_status, set_company_Status] = useState("Active");
 
   const [form, setForm] = useState({
