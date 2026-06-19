@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import "../styles/Sidebar_Menu.css";
-import { House, Book, ListVideo, FileUser, Lightbulb, UserPen } from "lucide-react";
+import { House, Book, ListVideo, FileUser, Lightbulb, UserPen, UploadCloud } from "lucide-react";
 
 const navItems = [
     { to: "/home", icon: <House />, label: "Dashboard" },
@@ -8,6 +8,7 @@ const navItems = [
     { to: "/billhistory", icon: <ListVideo />, label: "Bill History" },
     { to: "/consumptionhistory", icon: <FileUser />, label: "Consumption History" },
     { to: "/tips", icon: <Lightbulb />, label: "Tips & Suggestions" },
+    { to: "/uploadbill", icon: <UploadCloud />, label: "Upload Bill" },
     { to: "/profile", icon: <UserPen />, label: "Profile" },
 ];
 

@@ -9,6 +9,7 @@ import BillHistory from "./pages/BillHistory";
 import ConsumptionHistory from "./pages/ConsumptionHistory";
 import Tips from "./pages/Tips";
 import Profile from "./pages/Profile";
+import UploadBill from "./pages/UploadBill";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/consumptionhistory" element={<ProtectedRoute><ConsumptionHistory /></ProtectedRoute>} />
         <Route path="/tips" element={<ProtectedRoute><Tips /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/uploadbill" element={<ProtectedRoute><UploadBill /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
