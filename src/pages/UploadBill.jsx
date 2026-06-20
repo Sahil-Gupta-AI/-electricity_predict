@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Sidebar_Menu from "./Sidebar_Menu";
 import { useNavigate } from "react-router-dom";
+import tataPowerLogo from "../assets/tata-power-logo.png";
 
 const mockExtracted = {
     company: {
@@ -320,7 +321,7 @@ function ExtractedContent() {
                 <div className="ub-company-body">
                     <div className="ub-company-left">
                         <div className="ub-company-logo">
-                            <Zap size={28} color="#6D4AFF" />
+                            <img src={tataPowerLogo} alt="Tata Power" className="ub-company-logo-img" />
                         </div>
                         <div>
                             <p className="ub-company-name">{d.company.name}</p>
