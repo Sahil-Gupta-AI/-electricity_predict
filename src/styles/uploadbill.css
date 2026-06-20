@@ -453,6 +453,12 @@
     line-height: 1.7;
 }
 
+.ub-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 .ub-company-right {
     flex: 1;
 }

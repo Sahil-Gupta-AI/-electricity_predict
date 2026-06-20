@@ -3,7 +3,9 @@ import "../styles/uploadbill.css";
 import { useState, useRef } from "react";
 import {
     Menu, ChevronDown, Upload, Camera, Image, Clipboard,
-    CheckCircle, FileText, AlertCircle, Download, RefreshCw, Zap
+    CheckCircle, FileText, AlertCircle, Download, RefreshCw, Zap,
+    Globe, Phone, User, CreditCard, Plug, Calendar, BadgeCheck,
+    Banknote, Wallet
 } from "lucide-react";
 import Sidebar_Menu from "./Sidebar_Menu";
 import { useNavigate } from "react-router-dom";
@@ -323,8 +325,8 @@ function ExtractedContent() {
                         <div>
                             <p className="ub-company-name">{d.company.name}</p>
                             <p className="ub-company-detail">CIN: {d.company.cin}</p>
-                            <p className="ub-company-detail">🌐 {d.company.website}</p>
-                            <p className="ub-company-detail">📞 {d.company.toll}</p>
+                            <p className="ub-company-detail ub-detail-row"><Globe size={13} /> {d.company.website}</p>
+                            <p className="ub-company-detail ub-detail-row"><Phone size={13} /> {d.company.toll}</p>
                         </div>
                     </div>
                     <div className="ub-company-right">
@@ -340,15 +342,15 @@ function ExtractedContent() {
 
             <div className="ub-consumer-grid">
                 {[
-                    { label: "Consumer Name", value: d.consumer.name, icon: "👤" },
-                    { label: "Consumer ID", value: d.consumer.id, icon: "🪪" },
-                    { label: "Connection Number", value: d.consumer.connection, icon: "🔌" },
-                    { label: "Bill Date", value: d.consumer.billDate, icon: "📅" },
-                    { label: "Due Date", value: d.consumer.dueDate, icon: "📅" },
-                    { label: "Bill Status", value: d.usage.status, icon: "✅", highlight: true },
+                    { label: "Consumer Name", value: d.consumer.name, icon: <User size={13} /> },
+                    { label: "Consumer ID", value: d.consumer.id, icon: <CreditCard size={13} /> },
+                    { label: "Connection Number", value: d.consumer.connection, icon: <Plug size={13} /> },
+                    { label: "Bill Date", value: d.consumer.billDate, icon: <Calendar size={13} /> },
+                    { label: "Due Date", value: d.consumer.dueDate, icon: <Calendar size={13} /> },
+                    { label: "Bill Status", value: d.usage.status, icon: <BadgeCheck size={13} />, highlight: true },
                 ].map((item, i) => (
                     <div key={i} className="ub-consumer-cell">
-                        <p className="ub-cell-label">{item.icon} {item.label}</p>
+                        <p className="ub-cell-label ub-detail-row">{item.icon} {item.label}</p>
                         <p className={`ub-cell-value ${item.highlight ? "paid" : ""}`}>{item.value}</p>
                     </div>
                 ))}
@@ -356,13 +358,13 @@ function ExtractedContent() {
 
             <div className="ub-usage-grid">
                 {[
-                    { label: "Previous Month Units", value: d.usage.prevUnits, icon: "⚡" },
-                    { label: "Previous Amount", value: d.usage.prevAmount, icon: "💵" },
-                    { label: "Current Month Units", value: d.usage.currUnits, icon: "⚡" },
-                    { label: "Current Amount", value: d.usage.currAmount, icon: "💰" },
+                    { label: "Previous Month Units", value: d.usage.prevUnits, icon: <Zap size={13} /> },
+                    { label: "Previous Amount", value: d.usage.prevAmount, icon: <Banknote size={13} /> },
+                    { label: "Current Month Units", value: d.usage.currUnits, icon: <Zap size={13} /> },
+                    { label: "Current Amount", value: d.usage.currAmount, icon: <Wallet size={13} /> },
                 ].map((item, i) => (
                     <div key={i} className="ub-usage-cell">
-                        <p className="ub-cell-label">{item.icon} {item.label}</p>
+                        <p className="ub-cell-label ub-detail-row">{item.icon} {item.label}</p>
                         <p className="ub-cell-value">{item.value}</p>
                     </div>
                 ))}
