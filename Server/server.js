@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const predictRoute = require("./routes/predictRoute");
+const extractRoute = require("./routes/extractRoute");
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api", predictRoute);
+app.use("/api", extractRoute);
 
 app.get("/", (req, res) => {
   res.send("API Running...");

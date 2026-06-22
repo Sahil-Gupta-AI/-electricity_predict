@@ -555,9 +555,11 @@ ul{
 
 .how-card{
   background:#F7F5FE;
-  padding:10px;
   border-radius:16px;
+  box-shadow:0 1px 10px rgba(0,0,0,.15);
+  padding:15px;
   height:570px;
+  
 }
 
 .how-card p{
@@ -609,6 +611,7 @@ ul{
   background:#eef5ff;
   padding:25px;
   border-radius:16px;
+  box-shadow:0 1px 10px rgba(0,0,0,.15);
   
 }
 
