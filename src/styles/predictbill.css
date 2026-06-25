@@ -629,3 +629,66 @@ ul{
 p{
   color:#9C9EB8
 }
+
+/* ===== TABS ===== */
+.predict-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: #eef1f6;
+  padding: 6px;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.predict-tab {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #5b5e6e;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.predict-tab.active {
+  background: white;
+  color: #5b3df5;
+  box-shadow: 0 4px 12px rgba(91, 61, 245, 0.12);
+}
+
+.predict-tab:hover:not(.active) {
+  color: #5b3df5;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== RESPONSIVE PREDICTION PAGE LAYOUT ===== */
+
+@media (max-width: 1024px) {
+  .predict-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .history-grid {
+    grid-template-columns: 1fr;
+  }
+  .tariff-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-fields, .previous-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .tariff-grid {
+    grid-template-columns: 1fr;
+  }
+}

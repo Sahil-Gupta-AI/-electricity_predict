@@ -1,6 +1,6 @@
 import "../styles/home.css";
 import "../styles/uploadbill.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
     Menu, ChevronDown, Upload, Camera, Image, Clipboard,
     CheckCircle, FileText, AlertCircle, Download, RefreshCw,
@@ -31,7 +31,7 @@ function getCompanyLogo(name) {
 }
 
 export default function UploadBill() {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [activeTab, setActiveTab] = useState("upload");
     const [dragOver, setDragOver] = useState(false);
@@ -64,22 +64,33 @@ export default function UploadBill() {
             const formData = new FormData();
             formData.append("file", f);
 
+            const token = localStorage.getItem("token");
+            const headers = {};
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const res = await fetch("http://localhost:8000/api/extract", {
                 method: "POST",
                 body: formData,
+                headers: headers,
             });
 
             const data = await res.json();
 
             if (!res.ok) {
-                throw new Error(data.detail || data.error || "Extraction failed");
+                throw new Error(data.detail || data.error || data.message || "Extraction failed");
             }
 
             setExtracted(data);
             setProcessing(false);
         } catch (err) {
             console.error("OCR error:", err);
-            setError(err.message || "Could not extract bill details. Try a clearer image.");
+            let msg = err.message || "Could not extract bill details. Try a clearer image.";
+            if (msg.toLowerCase().includes("token") || msg.toLowerCase().includes("expired") || msg.toLowerCase().includes("auth")) {
+                msg = "Session expired. Please log out and log back in to refresh your session.";
+            }
+            setError(msg);
             setProcessing(false);
         }
     }
@@ -104,6 +115,9 @@ export default function UploadBill() {
     return (
         <div className="layout">
             <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
+            {!collapsed && (
+                <div className="mobile-sidebar-backdrop" onClick={() => setCollapsed(true)} />
+            )}
             <div className="main-content">
                 <header className="top-navbar">
                     <div className="navbar">
@@ -306,6 +320,39 @@ function ExtractedHeader({ file, onReExtract }) {
 
 function ExtractedContent({ data: d }) {
     const logo = getCompanyLogo(d.company?.name);
+    const navigate = useNavigate();
+
+    const paymentUrl = useMemo(() => {
+        if (!d.company?.name || d.company?.name === "—") return null;
+        const companyName = d.company.name.toLowerCase();
+        
+        const PAYMENT_URLS = {
+            mahavitaran: "https://otheronlinepayment.mahadiscom.in/OtherReceipts/onlinePayment.jsp",
+            adani: "https://www.adanielectricity.com/pay-your-bill/online-payments",
+            best: "https://www.bestundertaking.net/",
+            torrent: "https://connect.torrentpower.com/tplcp/preloginpaynow",
+            tata: "https://pgi.billdesk.com/pgidsk/pgmerc/tatapwr/TATAPWRDetails.jsp"
+        };
+        
+        for (const key in PAYMENT_URLS) {
+            if (companyName.includes(key)) return PAYMENT_URLS[key];
+        }
+        
+        if (
+            companyName.includes("msedcl") || 
+            companyName.includes("mahavitaran") || 
+            companyName.includes("महावितरण") || 
+            companyName.includes("mahadiscom")
+        ) {
+            return PAYMENT_URLS.mahavitaran;
+        }
+        
+        return null;
+    }, [d.company?.name]);
+
+    function handleGoToPredict() {
+        navigate("/predictbill", { state: { billDetails: d } });
+    }
 
     return (
         <>
@@ -409,7 +456,34 @@ function ExtractedContent({ data: d }) {
                             <span>{d.summary?.total}</span>
                         </div>
                     </div>
+                    {paymentUrl && (
+                        <a 
+                            href={paymentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ub-pay-btn"
+                        >
+                            <CreditCard size={16} /> Pay Bill Online
+                        </a>
+                    )}
                     <button className="ub-download-btn"><Download size={16} /> Download Extracted Data</button>
+                    <button className="ub-predict-action-btn" onClick={handleGoToPredict} style={{
+                        marginTop: "12px",
+                        backgroundColor: "#6D4AFF",
+                        color: "white",
+                        padding: "10px 16px",
+                        borderRadius: "8px",
+                        border: "none",
+                        fontWeight: "600",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        cursor: "pointer",
+                        width: "100%"
+                    }}>
+                        <Zap size={16} /> Predict Next Month Bill
+                    </button>
                 </div>
             </div>
         </>

@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python virtual environment & cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local secrets and env variables
+.env
+.env.local
+Server/.env
+Server/Ml-model/.venv/

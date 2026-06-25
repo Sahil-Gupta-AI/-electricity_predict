@@ -9,7 +9,9 @@ import {
     Tooltip, ResponsiveContainer, Cell
 } from "recharts";
 
-const billData = [
+import { useEffect } from "react";
+
+const mockData = [
     { month: "Jan 2026", units: 420, amount: 3780, status: "Paid" },
     { month: "Feb 2026", units: 390, amount: 3510, status: "Paid" },
     { month: "Mar 2026", units: 480, amount: 4320, status: "Paid" },
@@ -24,9 +26,18 @@ const billData = [
     { month: "Dec 2026", units: 460, amount: 4140, status: "Pending" },
 ];
 
-const totalPaid = billData.reduce((s, d) => s + d.amount, 0);
-const avgBill = Math.round(totalPaid / billData.length);
-const highest = billData.reduce((a, b) => (a.amount > b.amount ? a : b));
+const parseBillDate = (rawDate) => {
+    if (!rawDate || rawDate === "—") return "Unknown";
+    const parts = rawDate.split(/[\/\-\s]/);
+    if (parts.length >= 3) {
+        let monthPart = parts[1];
+        monthPart = monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
+        let yearPart = parts[2];
+        if (yearPart.length === 2) yearPart = `20${yearPart}`;
+        return `${monthPart} ${yearPart}`;
+    }
+    return rawDate;
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -41,10 +52,44 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function BillHistory() {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [bills, setBills] = useState([]);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await fetch("http://localhost:8000/api/history/bills", {
+                    headers: token ? { "Authorization": `Bearer ${token}` } : {}
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setBills(data);
+                }
+            } catch (err) {
+                console.error("Error fetching history:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHistory();
+    }, []);
+
+    const isDemo = bills.length === 0;
+    const billData = isDemo ? mockData : bills.map(b => ({
+        month: parseBillDate(b.billDate),
+        units: b.units,
+        amount: b.amount,
+        status: "Paid"
+    }));
+
+    const totalPaid = billData.reduce((s, d) => s + d.amount, 0);
+    const avgBill = billData.length > 0 ? Math.round(totalPaid / billData.length) : 0;
+    const highest = billData.length > 0 ? billData.reduce((a, b) => (a.amount > b.amount ? a : b)) : { month: "—", amount: 0 };
 
     function handleLogout() {
         localStorage.removeItem("user");
@@ -54,6 +99,9 @@ export default function BillHistory() {
     return (
         <div className="layout">
             <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
+            {!collapsed && (
+                <div className="mobile-sidebar-backdrop" onClick={() => setCollapsed(true)} />
+            )}
             <div className="main-content">
                 <header className="top-navbar">
                     <div className="navbar">
@@ -75,6 +123,39 @@ export default function BillHistory() {
 
                 <main className="content">
                     <h2>Bill History</h2>
+
+                    {isDemo && (
+                        <div style={{
+                            background: "#faf8ff",
+                            border: "1.5px dashed #c4b5fd",
+                            borderRadius: "12px",
+                            padding: "16px 20px",
+                            color: "#5b3df5",
+                            marginBottom: "24px",
+                            fontSize: "14.5px",
+                            fontWeight: "500",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        }}>
+                            <span>Viewing demo data. Upload your first bill to see your actual bill history dashboard!</span>
+                            <button 
+                                onClick={() => navigate("/uploadbill")} 
+                                style={{
+                                    backgroundColor: "#6D4AFF",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    padding: "8px 16px",
+                                    cursor: "pointer",
+                                    fontWeight: "600",
+                                    transition: "all 0.2s"
+                                }}
+                            >
+                                Upload Bill
+                            </button>
+                        </div>
+                    )}
 
                     <div className="bh-stats">
                         <div className="bh-stat-card">

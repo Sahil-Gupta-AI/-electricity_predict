@@ -101,7 +101,7 @@ const categories = ["All", "Cooling", "Lighting", "Appliances", "Solar"];
 const difficultyColor = { Easy: { bg: "#DCFCE7", color: "#16A34A" }, Hard: { bg: "#FEE2E2", color: "#DC2626" } };
 
 export default function Tips() {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [activeTab, setActiveTab] = useState("All");
     const navigate = useNavigate();
@@ -118,6 +118,9 @@ export default function Tips() {
     return (
         <div className="layout">
             <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
+            {!collapsed && (
+                <div className="mobile-sidebar-backdrop" onClick={() => setCollapsed(true)} />
+            )}
             <div className="main-content">
                 <header className="top-navbar">
                     <div className="navbar">

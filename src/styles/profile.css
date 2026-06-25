@@ -208,3 +208,17 @@
     color: #6b7280;
     cursor: not-allowed;
 }
+
+/* ===== RESPONSIVE PROFILE LAYOUT ===== */
+
+@media (max-width: 900px) {
+    .pf-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .pf-fields {
+        grid-template-columns: 1fr;
+    }
+}

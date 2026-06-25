@@ -19,7 +19,7 @@ router.post("/register", async (req, res) => {
     const user = new User({ fname, lname, email, password: hashedPassword });
     await user.save();
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
 
     console.log(`New user registered: ${email}`);
     res.json({ message: "Registration successful!", token });
@@ -44,7 +44,7 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: "30d" });
 
     console.log(`User logged in: ${email}`);
     res.status(200).json({

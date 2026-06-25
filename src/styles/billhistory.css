@@ -148,3 +148,20 @@
     background: #FEF9C3;
     color: #B45309;
 }
+
+/* ===== RESPONSIVE BILL HISTORY LAYOUT ===== */
+
+@media (max-width: 1024px) {
+    .bh-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .bh-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .bh-stats {
+        grid-template-columns: 1fr;
+    }
+}

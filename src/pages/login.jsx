@@ -30,7 +30,7 @@ export default function LoginPage() {
   
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigator("/predictbill");
+      navigator("/uploadbill");
     } catch (err) {
       setError(
         err.response?.data?.message || "Something went wrong"

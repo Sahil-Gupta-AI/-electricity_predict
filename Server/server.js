@@ -20,6 +20,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api", predictRoute);
 app.use("/api", extractRoute);
+app.use("/api/history", require("./routes/historyRoute"));
 
 app.get("/", (req, res) => {
   res.send("API Running...");

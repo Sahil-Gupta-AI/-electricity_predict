@@ -6,7 +6,7 @@ import Sidebar_Menu from "./Sidebar_Menu";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const navigate = useNavigate();
@@ -37,6 +37,9 @@ export default function Profile() {
     return (
         <div className="layout">
             <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
+            {!collapsed && (
+                <div className="mobile-sidebar-backdrop" onClick={() => setCollapsed(true)} />
+            )}
             <div className="main-content">
                 <header className="top-navbar">
                     <div className="navbar">

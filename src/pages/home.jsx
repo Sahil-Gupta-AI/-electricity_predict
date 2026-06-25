@@ -13,6 +13,8 @@ import { PlugZap } from "lucide-react";
 import Sidebar_Menu from "./Sidebar_Menu";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import dayjs from "dayjs";
 
 import { XAxis } from "recharts";
 import { YAxis } from "recharts";
@@ -40,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function home() {
 
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [displayProgress, setDisplayProgress] = useState(0);
     const navigate = useNavigate();
@@ -54,12 +56,49 @@ export default function home() {
 
     const location = useLocation();
 
-    const amount = location.state?.amount;
-    const unit = location.state?.unit;
-    const predictUnit = location.state?.predictUnit;
-    const predictAmount = location.state?.predictAmount;
-    const month = location.state?.month;
-    const nextMonth = location.state?.nextMonth;
+    const [amount, setAmount] = useState(location.state?.amount || "");
+    const [unit, setUnit] = useState(location.state?.unit || "");
+    const [predictUnit, setPredictUnit] = useState(location.state?.predictUnit || "");
+    const [predictAmount, setPredictAmount] = useState(location.state?.predictAmount || "");
+    const [month, setMonth] = useState(location.state?.month || "");
+    const [nextMonth, setNextMonth] = useState(location.state?.nextMonth || "");
+
+    useEffect(() => {
+        // If we don't have predictions in the navigation state, fetch the latest one from the backend
+        if (!location.state || !location.state.predictAmount) {
+            const fetchLatestPrediction = async () => {
+                try {
+                    const token = localStorage.getItem("token");
+                    if (!token) return;
+
+                    const res = await axios.get("/api/history/predictions", {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    if (res.data && res.data.length > 0) {
+                        const latest = res.data[0]; // sorted by createdAt: -1 on backend
+                        setAmount(latest.inputAmount !== undefined ? String(latest.inputAmount) : "");
+                        setUnit(latest.inputUnit !== undefined ? String(latest.inputUnit) : "");
+                        setPredictUnit(latest.predictUnit !== undefined ? String(latest.predictUnit) : "");
+                        setPredictAmount(latest.predictAmount !== undefined ? String(latest.predictAmount) : "");
+                        setMonth(latest.month || "");
+                        
+                        if (latest.month) {
+                            const nextMonthName = dayjs(latest.month, "MMM YYYY")
+                                .add(1, "month")
+                                .format("MMM YYYY");
+                            setNextMonth(nextMonthName);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching latest prediction:", err);
+                }
+            };
+            fetchLatestPrediction();
+        }
+    }, [location.state]);
 
     const progress = useMemo(() => {
         if (!predictAmount) return 0;
@@ -119,6 +158,9 @@ export default function home() {
         <>
             <div className="layout">
                 <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
+                {!collapsed && (
+                    <div className="mobile-sidebar-backdrop" onClick={() => setCollapsed(true)} />
+                )}
                 <div className="main-content">
                     <header className="top-navbar">
                         <div className="navbar">

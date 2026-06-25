@@ -9,7 +9,9 @@ import {
     CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from "recharts";
 
-const consumptionData = [
+import { useEffect } from "react";
+
+const mockData = [
     { month: "Jan", units: 420, season: "Winter" },
     { month: "Feb", units: 390, season: "Winter" },
     { month: "Mar", units: 480, season: "Summer" },
@@ -31,16 +33,22 @@ const seasonColors = {
     PostMonsoon: "#995cf1",
 };
 
-const seasonData = Object.entries(
-    consumptionData.reduce((acc, d) => {
-        acc[d.season] = (acc[d.season] || 0) + d.units;
-        return acc;
-    }, {})
-).map(([season, units]) => ({ season, units }));
+const getSeason = (monthStr) => {
+    const m = monthStr.toLowerCase();
+    if (["dec", "jan", "feb"].includes(m)) return "Winter";
+    if (["mar", "apr", "may"].includes(m)) return "Summer";
+    if (["jun", "jul", "aug", "sep"].includes(m)) return "Monsoon";
+    return "PostMonsoon";
+};
 
-const totalUnits = consumptionData.reduce((s, d) => s + d.units, 0);
-const avgUnits = Math.round(totalUnits / consumptionData.length);
-const peakMonth = consumptionData.reduce((a, b) => (a.units > b.units ? a : b));
+const parseMonthName = (rawDate) => {
+    if (!rawDate || rawDate === "—") return "Jan";
+    const parts = rawDate.split(/[\/\-\s]/);
+    if (parts.length >= 2) {
+        return parts[1].charAt(0).toUpperCase() + parts[1].slice(1, 3).toLowerCase();
+    }
+    return "Jan";
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -55,10 +63,53 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function ConsumptionHistory() {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [bills, setBills] = useState([]);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                const res = await fetch("http://localhost:8000/api/history/bills", {
+                    headers: token ? { "Authorization": `Bearer ${token}` } : {}
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setBills(data);
+                }
+            } catch (err) {
+                console.error("Error fetching history:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHistory();
+    }, []);
+
+    const isDemo = bills.length === 0;
+    const consumptionData = isDemo ? mockData : bills.map(b => {
+        const monthName = parseMonthName(b.billDate);
+        return {
+            month: monthName,
+            units: b.units,
+            season: getSeason(monthName)
+        };
+    });
+
+    const seasonData = Object.entries(
+        consumptionData.reduce((acc, d) => {
+            acc[d.season] = (acc[d.season] || 0) + d.units;
+            return acc;
+        }, {})
+    ).map(([season, units]) => ({ season, units }));
+
+    const totalUnits = consumptionData.reduce((s, d) => s + d.units, 0);
+    const avgUnits = consumptionData.length > 0 ? Math.round(totalUnits / consumptionData.length) : 0;
+    const peakMonth = consumptionData.length > 0 ? consumptionData.reduce((a, b) => (a.units > b.units ? a : b)) : { month: "—", units: 0 };
 
     function handleLogout() {
         localStorage.removeItem("user");
@@ -68,6 +119,9 @@ export default function ConsumptionHistory() {
     return (
         <div className="layout">
             <Sidebar_Menu collapsed={collapsed} setCollapsed={setCollapsed} />
+            {!collapsed && (
+                <div className="mobile-sidebar-backdrop" onClick={() => setCollapsed(true)} />
+            )}
             <div className="main-content">
                 <header className="top-navbar">
                     <div className="navbar">
@@ -89,6 +143,39 @@ export default function ConsumptionHistory() {
 
                 <main className="content">
                     <h2>Consumption History</h2>
+
+                    {isDemo && (
+                        <div style={{
+                            background: "#faf8ff",
+                            border: "1.5px dashed #c4b5fd",
+                            borderRadius: "12px",
+                            padding: "16px 20px",
+                            color: "#5b3df5",
+                            marginBottom: "24px",
+                            fontSize: "14.5px",
+                            fontWeight: "500",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center"
+                        }}>
+                            <span>Viewing demo data. Upload your first bill to see your actual consumption history dashboard!</span>
+                            <button 
+                                onClick={() => navigate("/uploadbill")} 
+                                style={{
+                                    backgroundColor: "#6D4AFF",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    padding: "8px 16px",
+                                    cursor: "pointer",
+                                    fontWeight: "600",
+                                    transition: "all 0.2s"
+                                }}
+                            >
+                                Upload Bill
+                            </button>
+                        </div>
+                    )}
 
                     <div className="ch-stats">
                         <div className="ch-stat-card">

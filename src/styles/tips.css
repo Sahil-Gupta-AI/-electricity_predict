@@ -163,3 +163,14 @@
 .tip-card-saving strong {
     font-size: 15px;
 }
+
+/* ===== RESPONSIVE TIPS LAYOUT ===== */
+
+@media (max-width: 768px) {
+    .tips-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+}

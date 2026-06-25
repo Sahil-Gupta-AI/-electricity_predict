@@ -441,3 +441,30 @@ ul{
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ===== RESPONSIVE DASHBOARD LAYOUT ===== */
+
+@media (max-width: 1200px) {
+  .second-row {
+    grid-template-columns: 1fr;
+  }
+  .second-row-third-box {
+    width: 100% !important;
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .first-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .content {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 640px) {
+  .first-row {
+    grid-template-columns: 1fr;
+  }
+}

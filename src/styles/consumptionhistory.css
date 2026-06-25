@@ -107,3 +107,20 @@
     border-radius: 50%;
     display: inline-block;
 }
+
+/* ===== RESPONSIVE CONSUMPTION HISTORY LAYOUT ===== */
+
+@media (max-width: 1024px) {
+    .ch-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ch-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .ch-stats {
+        grid-template-columns: 1fr;
+    }
+}

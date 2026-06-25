@@ -711,3 +711,55 @@
 .ub-no-data p {
     font-size: 15px;
 }
+
+.ub-pay-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #10B981;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.ub-pay-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16,185,129,0.3);
+}
+
+/* ===== RESPONSIVE UPLOAD BILL LAYOUT ===== */
+
+@media (max-width: 1024px) {
+    .ub-body {
+        grid-template-columns: 1fr;
+    }
+    .ub-consumer-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .ub-usage-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ub-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .ub-consumer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ub-usage-grid {
+        grid-template-columns: 1fr;
+    }
+}
