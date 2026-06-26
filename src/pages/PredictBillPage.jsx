@@ -20,6 +20,10 @@ import { ChevronUp } from "lucide-react";
 import { IndianRupee } from "lucide-react";
 
 export default function PredictBillPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const initialBillDetails = location.state?.billDetails;
+
   const user = JSON.parse(localStorage.getItem("user"));
   const userdetail = {
     name: user?.name,
@@ -55,12 +59,21 @@ export default function PredictBillPage() {
   }
 
   function handleApplianceChange(id, field, value) {
-    setAppliances(prev => prev.map(app => 
-      app.id === id ? { ...app, [field]: value } : app
-    ));
+    setAppliances(prev => prev.map(app => {
+      if (app.id === id) {
+        const updated = { ...app, [field]: value };
+        const currentHours = field === "hours" ? parseFloat(value) : parseFloat(app.hours);
+        const currentQty = field === "quantity" ? parseFloat(value) : parseFloat(app.quantity);
+        if (currentHours > 0 && currentQty > 0) {
+          updated.active = true;
+        } else {
+          updated.active = false;
+        }
+        return updated;
+      }
+      return app;
+    }));
   }
-
-  const navigate = useNavigate();
 
   // company options
   const options = [
@@ -243,9 +256,6 @@ export default function PredictBillPage() {
       [id]: value,
     }));
   }
-
-  const location = useLocation();
-  const initialBillDetails = location.state?.billDetails;
 
   useEffect(() => {
     if (initialBillDetails) {
