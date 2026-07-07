@@ -46,6 +46,11 @@ export default function Profile() {
                         <div className="menu" onClick={() => setCollapsed(!collapsed)}>
                             <Menu />
                         </div>
+                        {collapsed && (
+                            <div className="centered-logo">
+                                <img src="./logo.png" alt="Logo" className="navbar-logo" />
+                            </div>
+                        )}
                         <div className="profile" onClick={() => setShowProfileMenu(!showProfileMenu)}>
                             <div className="avatar">{user?.initials}</div>
                             {user?.name}
