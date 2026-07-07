@@ -242,11 +242,6 @@ export default function home() {
                             <div className="menu" onClick={() => setCollapsed(!collapsed)}>
                                 <Menu />
                             </div>
-                            {collapsed && (
-                                <div className="centered-logo">
-                                    <img src="./logo.png" alt="Logo" className="navbar-logo" />
-                                </div>
-                            )}
                             <div
                                 className="profile"
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}>

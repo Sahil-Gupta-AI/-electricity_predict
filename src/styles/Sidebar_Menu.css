@@ -53,7 +53,8 @@
 }
 
 .Sidebar.collapsed .logo-pic{
-    display: none;
+    width:40px;
+    height:auto;
 }
 
 
@@ -80,7 +81,8 @@
 }
 
 .Sidebar.collapsed .logo-pic{
-  display: none;
+  width:55px;
+  height:auto;
 }
 
 .Sidebar.collapsed li a{
@@ -121,24 +123,4 @@
     background-color: rgba(0, 0, 0, 0.4);
     z-index: 999;
   }
-}
-
-.centered-logo {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 4px 18px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.navbar-logo {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
 }
