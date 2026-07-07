@@ -390,12 +390,13 @@ function ExtractedContent({ data: d }) {
 
             <div className="ub-consumer-grid">
                 {[
-                    { label: "Consumer Name",    value: d.consumer?.name,       icon: <User size={13} /> },
-                    { label: "Consumer ID",      value: d.consumer?.id,         icon: <CreditCard size={13} /> },
-                    { label: "Connection No.",   value: d.consumer?.connection, icon: <Plug size={13} /> },
-                    { label: "Bill Date",        value: d.consumer?.billDate,   icon: <Calendar size={13} /> },
-                    { label: "Due Date",         value: d.consumer?.dueDate,    icon: <Calendar size={13} /> },
-                    { label: "Bill Status",      value: d.usage?.status,        icon: <BadgeCheck size={13} />, highlight: true },
+                    { label: "Consumer Name",    value: d.consumer?.name,           icon: <User size={13} /> },
+                    { label: "Consumer ID",      value: d.consumer?.id,             icon: <CreditCard size={13} /> },
+                    { label: "Connection No.",   value: d.consumer?.connection,     icon: <Plug size={13} /> },
+                    { label: "Bill Date",        value: d.consumer?.billDate,       icon: <Calendar size={13} /> },
+                    { label: "Due Date",         value: d.consumer?.dueDate,        icon: <Calendar size={13} /> },
+                    { label: "Tariff Category",  value: d.consumer?.tariffCategory, icon: <Zap size={13} /> },
+                    { label: "Bill Status",      value: d.usage?.status,            icon: <BadgeCheck size={13} />, highlight: true },
                 ].map((item, i) => (
                     <div key={i} className="ub-consumer-cell">
                         <p className="ub-cell-label ub-detail-row">{item.icon} {item.label}</p>
@@ -417,6 +418,38 @@ function ExtractedContent({ data: d }) {
                     </div>
                 ))}
             </div>
+
+            {d.history && d.history.length > 0 && (
+                <div className="ub-history-card" style={{
+                    backgroundColor: "white",
+                    borderRadius: "12px",
+                    padding: "20px",
+                    boxShadow: "0 1px 3px 0 rgba(0,0,0,0.05)",
+                    marginBottom: "24px",
+                    border: "1px solid #f3f4f6"
+                }}>
+                    <h4 style={{ fontSize: "16px", fontWeight: "600", color: "#111827", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Banknote size={16} color="#6D4AFF" /> Billing &amp; Payment History (Last 6 Months)
+                    </h4>
+                    <p style={{ fontSize: "12.5px", color: "#6b7280", marginBottom: "16px" }}>Extracted historical payments from the bill</p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "12px" }}>
+                        {d.history.map((h, i) => (
+                            <div key={i} style={{
+                                backgroundColor: "#f9fafb",
+                                borderRadius: "8px",
+                                padding: "10px 14px",
+                                border: "1px solid #e5e7eb",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "2px"
+                            }}>
+                                <span style={{ fontSize: "11px", color: "#6b7280", fontWeight: "500" }}>{h.date}</span>
+                                <span style={{ fontSize: "16px", color: "#111827", fontWeight: "700" }}>{h.amount}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="ub-bottom-grid">
                 <div className="ub-slab-card">

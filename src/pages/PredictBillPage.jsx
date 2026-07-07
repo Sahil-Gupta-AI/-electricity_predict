@@ -6,8 +6,11 @@ import { Menu, ChevronDown } from "lucide-react";
 import { DatePicker } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import Select from "react-select";
 import axios from "axios";
+
+dayjs.extend(customParseFormat);
 // Symbol Or Icon Imports
 import { Info } from "lucide-react";
 import { LockKeyhole } from "lucide-react";
@@ -17,7 +20,7 @@ import { ReceiptText } from "lucide-react";
 import { HousePlus } from "lucide-react";
 import { RadioTower } from "lucide-react";
 import { ChevronUp } from "lucide-react";
-import { IndianRupee } from "lucide-react";
+import { IndianRupee, Banknote } from "lucide-react";
 
 export default function PredictBillPage() {
   const navigate = useNavigate();
@@ -38,6 +41,8 @@ export default function PredictBillPage() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeTab, setActiveTab] = useState("history");
   const [hasBills, setHasBills] = useState(true);
+  const [tariffCategory, setTariffCategory] = useState({ value: "Residential", label: "Residential" });
+  const [visibleLags, setVisibleLags] = useState(2);
 
   const defaultAppliances = [
     { id: "ac", name: "Air Conditioner", tonnage: "1.5", watts: 1500, hours: 6, quantity: 1, active: false },
@@ -85,15 +90,22 @@ export default function PredictBillPage() {
     { value: "torrent", label: "Torrent Power" },
   ];
 
+  // tariff category options
+  const categoryOptions = [
+    { value: "Residential", label: "Residential" },
+    { value: "Commercial", label: "Commercial" },
+    { value: "Industrial", label: "Industrial" },
+  ];
+
   const [providerData, setProviderData] = useState({
     none: null,
 
     tata: {
       logo: "src/assets/tata-power-logo.png",
       name: "Tata Power Tariff Details",
-      fixedCharge: "₹140",
-      energyRate: "₹7.20",
-      fac: "₹0.45",
+      fixedCharge: "₹135",
+      energyRate: "₹12.40",
+      fac: "₹0.00",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -102,9 +114,9 @@ export default function PredictBillPage() {
     adani: {
       logo: "src/assets/Adani-logo.png",
       name: "Adani Electricity Tariff Details",
-      fixedCharge: "₹125",
-      energyRate: "₹7.05",
-      fac: "₹0.42",
+      fixedCharge: "₹135",
+      energyRate: "₹8.13",
+      fac: "₹0.65",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -113,9 +125,9 @@ export default function PredictBillPage() {
     msedcl: {
       logo: "src/assets/MSEDCL-logo.png",
       name: "MSEDCL Tariff Details",
-      fixedCharge: "₹140",
-      energyRate: "₹6.50",
-      fac: "₹0.38",
+      fixedCharge: "₹130",
+      energyRate: "₹12.40",
+      fac: "₹0.25",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -124,9 +136,9 @@ export default function PredictBillPage() {
     torrent: {
       logo: "src/assets/torrent-power-logo.png",
       name: "Torrent Power Tariff Details",
-      fixedCharge: "₹135",
-      energyRate: "₹7.10",
-      fac: "₹0.43",
+      fixedCharge: "₹130",
+      energyRate: "₹12.57",
+      fac: "₹0.15",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -135,9 +147,9 @@ export default function PredictBillPage() {
     best: {
       logo: "src/assets/Best-power-logo.png",
       name: "BEST Power Tariff Details",
-      fixedCharge: "₹125",
-      energyRate: "₹6.90",
-      fac: "₹0.40",
+      fixedCharge: "₹135",
+      energyRate: "₹7.37",
+      fac: "₹0.75",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -157,7 +169,6 @@ export default function PredictBillPage() {
               if (dbVal.energyRate) updated[key].energyRate = dbVal.energyRate;
               if (dbVal.fac) updated[key].fac = dbVal.fac;
               if (dbVal.duty) updated[key].duty = dbVal.duty;
-              if (dbVal.name) updated[key].name = dbVal.name;
             }
           });
           return updated;
@@ -188,20 +199,6 @@ export default function PredictBillPage() {
           setHasBills(true);
         } else {
           setHasBills(false);
-          setForm({
-            month: "",
-            amount: "0",
-            unit: "0",
-            amount2: "0",
-            unit2: "0",
-            month2: "",
-          });
-          setAppliances(prev => prev.map(app => ({
-            ...app,
-            active: false,
-            hours: 0,
-            quantity: 0
-          })));
         }
       } catch (err) {
         console.error("Failed to fetch bill history to check existence:", err);
@@ -239,6 +236,7 @@ export default function PredictBillPage() {
   // Tariff Details
   const [lastudated, setLastUpdated] = useState(" 01 Mar 2026");
   const [company_status, set_company_Status] = useState("Active");
+  const [city, setCity] = useState("Mumbai");
 
   const [form, setForm] = useState({
     month: "",
@@ -247,6 +245,18 @@ export default function PredictBillPage() {
     amount2: "",
     unit2: "",
     month2: "",
+    amount3: "",
+    unit3: "",
+    month3: "",
+    amount4: "",
+    unit4: "",
+    month4: "",
+    amount5: "",
+    unit5: "",
+    month5: "",
+    amount6: "",
+    unit6: "",
+    month6: "",
   });
   function handleChange(e) {
     const { id, value } = e.target;
@@ -257,6 +267,21 @@ export default function PredictBillPage() {
     }));
   }
 
+  const handleProviderChange = (selected) => {
+    setProvider(selected);
+    const provider_to_city = {
+        tata: "Mumbai",
+        adani: "Mumbai",
+        msedcl: "Mumbai",
+        torrent: "Thane",
+        best: "Mumbai",
+        none: "Mumbai"
+    };
+    if (selected && provider_to_city[selected.value]) {
+        setCity(provider_to_city[selected.value]);
+    }
+  };
+
   useEffect(() => {
     if (initialBillDetails) {
       // 1. Identify and set the provider
@@ -266,6 +291,21 @@ export default function PredictBillPage() {
       );
       if (matchedOption) {
         setProvider(matchedOption);
+      }
+
+      // Set the city from OCR or default mapping
+      if (initialBillDetails.consumer?.city) {
+        setCity(initialBillDetails.consumer.city);
+      } else if (matchedOption) {
+        const provider_to_city = {
+            tata: "Mumbai",
+            adani: "Mumbai",
+            msedcl: "Mumbai",
+            torrent: "Thane",
+            best: "Mumbai",
+            none: "Mumbai"
+        };
+        setCity(provider_to_city[matchedOption.value] || "Mumbai");
       }
 
       // 2. Extract units (remove KWh and trim)
@@ -300,15 +340,112 @@ export default function PredictBillPage() {
       setCustomTariff({
         fixedCharge: ocrFixed && ocrFixed !== "—" ? ocrFixed : null,
         energyRate: ocrEnergy && ocrEnergy !== "—" ? ocrEnergy : null,
-        fac: ocrFac && ocrFac !== "—" ? ocrFac : null,
-        duty: ocrDuty && ocrDuty !== "—" ? ocrDuty : null,
+        fac: null, // Fallback to company default unit rate to avoid using total charge
+        duty: null, // Fallback to company default percentage
       });
+
+      // Pre-fill tariff category from OCR if available
+      const ocrTariffCat = initialBillDetails.consumer?.tariffCategory;
+      if (ocrTariffCat) {
+        setTariffCategory({ value: ocrTariffCat, label: ocrTariffCat });
+      }
+
+      // Extract and map all 6 previous months from billing/payment history
+      const lags = {};
+      for (let i = 2; i <= 6; i++) {
+        lags[`amount${i}`] = "";
+        lags[`unit${i}`] = "";
+        lags[`month${i}`] = "";
+      }
+
+      if (initialBillDetails.history && parsedMonth) {
+        initialBillDetails.history.forEach(h => {
+          const parts = h.date.split(/[\/\-\s]/);
+          if (parts.length >= 3) {
+            const mPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+            const yPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+            const hMonthStr = `${mPart} ${yPart}`;
+            
+            const diff = dayjs(parsedMonth, "MMM YYYY").diff(dayjs(hMonthStr, "MMM YYYY"), 'month');
+            const lagIdx = diff + 1;
+            
+            if (lagIdx >= 2 && lagIdx <= 6) {
+              const hAmt = parseFloat(h.amount.replace(/[^\d\.]/g, "")) || 0;
+              lags[`amount${lagIdx}`] = hAmt ? String(hAmt) : "";
+              lags[`month${lagIdx}`] = hMonthStr;
+              
+              // Estimate units for this lag
+              let estUnits = "";
+              if (hAmt > 0) {
+                const fixedVal = parseFloat(String(ocrFixed || "130").replace(/[^\d\.]/g, "")) || 130;
+                const rateVal = parseFloat(String(ocrEnergy || "4.28").replace(/[^\d\.]/g, "")) || 4.28;
+                const subtotal = hAmt / 1.16;
+                const energyCharges = subtotal - fixedVal;
+                if (energyCharges > 0) {
+                  let wheeling = 0.0;
+                  if (rateVal === 4.28 || rateVal === 11.10) wheeling = 1.47;
+                  else if (rateVal === 3.96 || rateVal === 10.80) wheeling = 1.60;
+                  else if (rateVal === 4.43 || rateVal === 9.64) wheeling = 2.76;
+                  else if (rateVal === 2.65 || rateVal === 5.85) wheeling = 2.28;
+                  else if (rateVal === 2.10 || rateVal === 5.50) wheeling = 1.87;
+                  estUnits = String(Math.max(0, Math.round(energyCharges / (rateVal + wheeling))));
+                }
+              }
+              lags[`unit${lagIdx}`] = estUnits;
+            }
+          }
+        });
+      }
+
+      // Interpolate any missing lags in the sequence
+      for (let i = 2; i <= 6; i++) {
+        if (!lags[`amount${i}`]) {
+          let prevVal = parseFloat(cleanedAmount) || 0;
+          let prevUnit = parseFloat(cleanedUnits) || 0;
+          if (i > 2 && lags[`amount${i-1}`]) {
+            prevVal = parseFloat(lags[`amount${i-1}`]) || 0;
+            prevUnit = parseFloat(lags[`unit${i-1}`]) || 0;
+          }
+          
+          let nextVal = 0;
+          let nextUnit = 0;
+          for (let j = i + 1; j <= 6; j++) {
+            if (lags[`amount${j}`]) {
+              nextVal = parseFloat(lags[`amount${j}`]) || 0;
+              nextUnit = parseFloat(lags[`unit${j}`]) || 0;
+              break;
+            }
+          }
+          
+          if (nextVal > 0) {
+            lags[`amount${i}`] = String(Math.round((prevVal + nextVal) / 2));
+            lags[`unit${i}`] = String(Math.round((prevUnit + nextUnit) / 2));
+          } else {
+            lags[`amount${i}`] = String(Math.round(prevVal));
+            lags[`unit${i}`] = String(Math.round(prevUnit));
+          }
+          
+          if (parsedMonth) {
+            lags[`month${i}`] = dayjs(parsedMonth, "MMM YYYY").subtract(i - 1, "month").format("MMM YYYY");
+          }
+        }
+      }
+
+      // Find maximum lag index that has data to set initial visibility
+      let maxLag = 2;
+      for (let i = 2; i <= 6; i++) {
+        if (lags[`amount${i}`]) {
+          maxLag = i;
+        }
+      }
+      setVisibleLags(maxLag);
 
       setForm(prev => ({
         ...prev,
         unit: cleanedUnits ? String(cleanedUnits) : prev.unit,
         amount: cleanedAmount ? String(cleanedAmount) : prev.amount,
-        month: parsedMonth || prev.month
+        month: parsedMonth || prev.month,
+        ...lags
       }));
     }
   }, [initialBillDetails]);
@@ -318,15 +455,14 @@ export default function PredictBillPage() {
     .format("MMM YYYY");
 
   const calculateEstimatedUnits = () => {
-    if (!hasBills) return 0;
-    let units = -96.1926; // Model Intercept
+    let units = -12.3411; // Model Intercept
 
     // Add Month coefficient (Month ranges from 1 to 12)
     if (form.month) {
       const monthNum = dayjs(form.month, "MMM YYYY").month() + 1;
-      units += monthNum * 1.2496;
+      units += monthNum * 0.9114;
     } else {
-      units += (dayjs().month() + 1) * 1.2496;
+      units += (dayjs().month() + 1) * 0.9114;
     }
 
     // Add Appliance coefficients based on the trained model
@@ -334,22 +470,21 @@ export default function PredictBillPage() {
       if (app.active) {
         const usageProduct = parseFloat(app.hours || 0) * parseFloat(app.quantity || 0);
         if (app.id === "fan") {
-          units += usageProduct * 6.2430;
+          units += usageProduct * 0.8996;
         } else if (app.id === "fridge") {
-          units += usageProduct * 15.2165;
+          units += usageProduct * 0.0; // Baseline is constant (24 hrs) and absorbed by intercept
         } else if (app.id === "ac") {
-          units += usageProduct * 30.3631;
+          units += usageProduct * 50.3841;
         } else if (app.id === "tv") {
-          units += usageProduct * 9.1525;
+          units += usageProduct * 7.1221;
         } else if (app.id === "comp") {
-          // Model maps Monitor to quantity * hours
-          units += usageProduct * 8.8817;
+          units += usageProduct * 8.0354;
         } else if (app.id === "geyser") {
-          units += usageProduct * (2000 * 30 / 1000); // 60 kWh per hour of daily usage
+          units += usageProduct * 66.8053;
         } else if (app.id === "bulb") {
-          units += usageProduct * (12 * 30 / 1000);   // 0.36 kWh per hour of daily usage
+          units += usageProduct * 7.3836;
         } else if (app.id === "wm") {
-          units += usageProduct * (500 * 30 / 1000);  // 15 kWh per hour of daily usage
+          units += usageProduct * 36.2937;
         } else if (app.id === "other") {
           units += usageProduct * (100 * 30 / 1000);  // 3 kWh per hour of daily usage
         }
@@ -360,11 +495,17 @@ export default function PredictBillPage() {
   };
 
   const getEstimatedBill = (units) => {
-    if (!hasBills || !displayCompany) return 0;
+    if (!displayCompany) return 0;
     const fixed = parseFloat(displayCompany.fixedCharge.replace(/[^\d\.]/g, "")) || 0;
     const rate = parseFloat(displayCompany.energyRate.replace(/[^\d\.]/g, "")) || 0;
     const fac = parseFloat(displayCompany.fac.replace(/[^\d\.]/g, "")) || 0;
-    const dutyPercent = parseFloat(displayCompany.duty.replace(/[^\d\.]/g, "")) || 0;
+    const dutyStr = displayCompany.duty || "";
+    let dutyPercent = 16;
+    if (typeof dutyStr === "string" && dutyStr.includes("%")) {
+      dutyPercent = parseFloat(dutyStr.replace(/[^\d\.]/g, "")) || 16;
+    } else if (typeof dutyStr === "number") {
+      dutyPercent = dutyStr;
+    }
 
     const energyCharge = units * rate;
     const facCharge = units * fac;
@@ -404,6 +545,7 @@ export default function PredictBillPage() {
       const res = await axios.post("/api/predict", {
         prediction_type: "appliances",
         provider: provider.value,
+        city: city,
         month: form.month,
         amount: estimatedBill,
         unit: estimatedUnits,
@@ -486,21 +628,46 @@ export default function PredictBillPage() {
       return;
     }
 
+    for (let i = 2; i <= visibleLags; i++) {
+      if ((form[`unit${i}`] && !form[`amount${i}`]) || (!form[`unit${i}`] && form[`amount${i}`])) {
+        setError(`Please fill in both Units and Amount for Lag Month ${i}, or leave both empty.`);
+        return;
+      }
+    }
+
     try {
       setLoading(true);
 
       const token = localStorage.getItem("token");
       const headers = token ? { "Authorization": `Bearer ${token}` } : {};
 
-      const res = await axios.post("/api/predict", {
+      const payload = {
         month: form.month,
         amount: form.amount,
         unit: form.unit,
+        provider: provider ? provider.value : "none",
+        city: city,
         fixedCharge: displayCompany.fixedCharge,
         energyRate: displayCompany.energyRate,
         fac: displayCompany.fac,
         duty: displayCompany.duty,
-      }, {
+        tariffCategory: tariffCategory ? tariffCategory.value : "Residential",
+      };
+
+      if (form.unit2 && form.amount2 && visibleLags >= 2) {
+        payload.unit2 = form.unit2;
+        payload.amount2 = form.amount2;
+        payload.month2 = form.month2 || dayjs(form.month, "MMM YYYY").subtract(1, "month").format("MMM YYYY");
+      }
+      for (let i = 3; i <= visibleLags; i++) {
+        if (form[`unit${i}`] && form[`amount${i}`]) {
+          payload[`unit${i}`] = form[`unit${i}`];
+          payload[`amount${i}`] = form[`amount${i}`];
+          payload[`month${i}`] = form[`month${i}`] || dayjs(form.month, "MMM YYYY").subtract(i - 1, "month").format("MMM YYYY");
+        }
+      }
+
+      const res = await axios.post("/api/predict", payload, {
         headers: headers
       });
       console.log(res.data);
@@ -512,6 +679,9 @@ export default function PredictBillPage() {
           month: form.month,
           predictUnit: res.data.predictUnit,
           predictAmount: res.data.predictAmount,
+          unit2: res.data.unit2 || "",
+          amount2: res.data.amount2 || "",
+          month2: form.month2 || "",
         },
       });
     } catch (err) {
@@ -576,11 +746,11 @@ export default function PredictBillPage() {
 
             {!hasBills && (
               <div style={{
-                background: "#fef2f2",
-                border: "1.5px dashed #fca5a5",
+                background: "#f5f3ff",
+                border: "1.5px dashed #c4b5fd",
                 borderRadius: "12px",
                 padding: "16px 20px",
-                color: "#dc2626",
+                color: "#6d4aff",
                 marginBottom: "24px",
                 fontSize: "14.5px",
                 fontWeight: "500",
@@ -588,11 +758,11 @@ export default function PredictBillPage() {
                 justifyContent: "space-between",
                 alignItems: "center"
               }}>
-                <span>Please upload at least one electricity bill to unlock predicting features! All inputs are locked to zero.</span>
+                <span>Tip: You can upload an electricity bill to automatically extract your previous usage and tariff details, or enter them manually below.</span>
                 <button 
                   onClick={() => navigate("/uploadbill")} 
                   style={{
-                    backgroundColor: "#dc2626",
+                    backgroundColor: "#6d4aff",
                     color: "white",
                     border: "none",
                     borderRadius: "8px",
@@ -614,23 +784,35 @@ export default function PredictBillPage() {
                   <h2>Enter Information</h2>
                   <p>All fields are required</p>
 
-                  <div className="top-fields">
+                  <div className="top-fields" style={{ gridTemplateColumns: window.innerWidth > 640 ? "repeat(3, 1fr)" : "1fr" }}>
                     <div className="field">
                       <label>Select Month</label>
                       <DatePicker
                         picker="month"
                         inputReadOnly={true}
-                        disabled={!hasBills}
+                        disabled={loading}
                         required
                         className="month-picker"
                         format="MMM YYYY"
                         placeholder="Select Month"
-                        value={form.month ? dayjs(form.month, "MMM YYYY") : null}
+                        value={form.month && dayjs(form.month, "MMM YYYY").isValid() ? dayjs(form.month, "MMM YYYY") : null}
                         onChange={(date, dateString) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            month: dateString,
-                          }))
+                          setForm((prev) => {
+                            const updated = { ...prev, month: dateString };
+                            if (dateString) {
+                              const baseDate = dayjs(dateString, "MMM YYYY");
+                              for (let i = 2; i <= 6; i++) {
+                                if (baseDate.isValid()) {
+                                  updated[`month${i}`] = baseDate.subtract(i - 1, "month").format("MMM YYYY");
+                                }
+                              }
+                            } else {
+                              for (let i = 2; i <= 6; i++) {
+                                updated[`month${i}`] = "";
+                              }
+                            }
+                            return updated;
+                          })
                         }
                         suffixIcon={<CalendarOutlined />}
                       />
@@ -642,10 +824,26 @@ export default function PredictBillPage() {
                         isSearchable={false}
                         options={options}
                         value={provider}
-                        onChange={setProvider}
-                        isDisabled={!hasBills}
+                        onChange={handleProviderChange}
+                        isDisabled={loading}
                         classNamePrefix="provider"
                         placeholder="Select Provider"
+                        components={{
+                          IndicatorSeparator: () => null,
+                        }}
+                      />
+                    </div>
+
+                    <div className="field">
+                      <label>Tariff Category</label>
+                      <Select
+                        isSearchable={false}
+                        options={categoryOptions}
+                        value={tariffCategory}
+                        onChange={(selected) => setTariffCategory(selected)}
+                        isDisabled={loading}
+                        classNamePrefix="provider"
+                        placeholder="Select Category"
                         components={{
                           IndicatorSeparator: () => null,
                         }}
@@ -785,13 +983,45 @@ export default function PredictBillPage() {
                     </div>
                   )}
 
+                  {initialBillDetails?.history && initialBillDetails.history.length > 0 && (
+                    <div style={{
+                      background: "linear-gradient(135deg, #fdfbf7 0%, #f5f3ff 100%)",
+                      border: "1px solid #e9d5ff",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      marginTop: "20px"
+                    }}>
+                      <h4 style={{ fontSize: "14px", fontWeight: "600", color: "#581c87", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <Banknote size={15} color="#7c3aed" /> Extracted Billing &amp; Payment History
+                      </h4>
+                      <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>These values are extracted from your PDF and used to improve model predictions.</p>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                        {initialBillDetails.history.map((h, i) => (
+                          <div key={i} style={{
+                            backgroundColor: "white",
+                            border: "1px solid #e9d5ff",
+                            borderRadius: "8px",
+                            padding: "8px 12px",
+                            fontSize: "13px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "2px",
+                            boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)"
+                          }}>
+                            <span style={{ color: "#6b7280", fontSize: "10.5px" }}>{h.date}</span>
+                            <span style={{ color: "#111827", fontWeight: "700" }}>{h.amount}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* TAB SWITCHER */}
                   <div className="predict-tabs" style={{ marginTop: "24px" }}>
                     <button 
                       type="button" 
                       className={`predict-tab ${activeTab === "history" ? "active" : ""}`} 
                       onClick={() => setActiveTab("history")}
-                      disabled={!hasBills}
                     >
                       Predict with History
                     </button>
@@ -799,7 +1029,6 @@ export default function PredictBillPage() {
                       type="button" 
                       className={`predict-tab ${activeTab === "appliances" ? "active" : ""}`} 
                       onClick={() => setActiveTab("appliances")}
-                      disabled={!hasBills}
                     >
                       Predict with Appliances
                     </button>
@@ -822,7 +1051,7 @@ export default function PredictBillPage() {
                             id="unit"
                             value={form.unit}
                             onChange={handleChange}
-                            disabled={!hasBills}
+                            disabled={loading}
                           />
                           <span className="unit-text"> kWh </span>
                              </div>
@@ -839,7 +1068,7 @@ export default function PredictBillPage() {
                             id="amount"
                             value={form.amount}
                             onChange={handleChange}
-                            disabled={!hasBills}
+                            disabled={loading}
                           />
                              <IndianRupee className="rupee-icon" />
                            </div>
@@ -848,64 +1077,127 @@ export default function PredictBillPage() {
 
                
                       <div className="history-box">
-                        <h3>Add Previous Previous Month Data (Optional)</h3>
+                        <h3>Add Historical Data (Lags 2 to 6)</h3>
                         <p>
-                          Including more historical data improves prediction
-                          accuracy
+                          Providing more past months' data will use the new 6-month prediction model.
                         </p>
 
-                        <div className="history-grid">
-                          <div className="field">
-                            <label>Units (kWh) </label>
-                            <div className="input-wrapper">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              id="unit2"
-                              placeholder="Enter Units"
-                              value={form.unit2}
-                              onChange={handleChange}
-                              disabled={!hasBills}
-                            />
-                            <span className="unit-text"> kWh </span>
+                        {Array.from({ length: visibleLags - 1 }, (_, index) => {
+                          const i = index + 2;
+                          return (
+                            <div key={i} className="history-grid" style={{
+                              borderBottom: i < visibleLags ? "1px dashed #e5e7eb" : "none",
+                              paddingBottom: i < visibleLags ? "16px" : "0",
+                              marginBottom: i < visibleLags ? "16px" : "0"
+                            }}>
+                              <div className="field">
+                                <label>{form[`month${i}`] ? `${form[`month${i}`]} Units` : `Month ${i} Units`} (kWh)</label>
+                                <div className="input-wrapper">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  id={`unit${i}`}
+                                  placeholder="Enter Units"
+                                  value={form[`unit${i}`]}
+                                  onChange={handleChange}
+                                  disabled={loading}
+                                />
+                                <span className="unit-text"> kWh </span>
+                                  </div>
                               </div>
-                          </div>
-                          <div className="field">
-                            <label>Bill Amount (₹) </label>
-                             <div className="input-wrapper">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
-                              id="amount2"
-                              placeholder="Enter Amount"
-                              value={form.amount2}
-                              onChange={handleChange}
-                              disabled={!hasBills}
-                            />
-                                <IndianRupee className="rupee-icon" />
-                             </div>
-                          </div>
-                          <div className="field">
-                            <label>Select Month</label>
-                            <DatePicker
-                              picker="month"
-                              inputReadOnly={true}
-                              disabled={!hasBills}
-                              className="month-picker"
-                              format="MMM YYYY"
-                              placeholder="Select Month"
-                              value={form.month2 ? dayjs(form.month2, "MMM YYYY") : null}
-                              onChange={(date, dateString) =>
-                                setForm((prev) => ({
+                              <div className="field">
+                                <label>{form[`month${i}`] ? `${form[`month${i}`]} Amount` : `Month ${i} Amount`} (₹)</label>
+                                 <div className="input-wrapper">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  id={`amount${i}`}
+                                  placeholder="Enter Amount"
+                                  value={form[`amount${i}`]}
+                                  onChange={handleChange}
+                                  disabled={loading}
+                                />
+                                    <IndianRupee className="rupee-icon" />
+                                 </div>
+                              </div>
+                              <div className="field">
+                                <label>Select Month</label>
+                                <DatePicker
+                                  picker="month"
+                                  inputReadOnly={true}
+                                  disabled={loading}
+                                  className="month-picker"
+                                  format="MMM YYYY"
+                                  placeholder="Select Month"
+                                  value={form[`month${i}`] && dayjs(form[`month${i}`], "MMM YYYY").isValid() ? dayjs(form[`month${i}`], "MMM YYYY") : null}
+                                  onChange={(date, dateString) =>
+                                    setForm((prev) => ({
+                                      ...prev,
+                                      [`month${i}`]: dateString,
+                                    }))
+                                  }
+                                  suffixIcon={<CalendarOutlined />}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+                          {visibleLags < 6 && (
+                            <button
+                              type="button"
+                              onClick={() => setVisibleLags(prev => Math.min(6, prev + 1))}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "8px 14px",
+                                borderRadius: "8px",
+                                border: "1px solid #6d4aff",
+                                background: "#f5f3ff",
+                                color: "#6d4aff",
+                                fontSize: "13px",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                transition: "all 0.2s"
+                              }}
+                            >
+                              + Add History Month
+                            </button>
+                          )}
+                          {visibleLags > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setForm(prev => ({
                                   ...prev,
-                                  month2: dateString,
-                                }))
-                              }
-                              suffixIcon={<CalendarOutlined />}
-                            />
-                          </div>
+                                  [`amount${visibleLags}`]: "",
+                                  [`unit${visibleLags}`]: "",
+                                  [`month${visibleLags}`]: ""
+                                }));
+                                setVisibleLags(prev => Math.max(2, prev - 1));
+                              }}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "8px 14px",
+                                borderRadius: "8px",
+                                border: "1px solid #ef4444",
+                                background: "#fef2f2",
+                                color: "#ef4444",
+                                fontSize: "13px",
+                                fontWeight: "600",
+                                cursor: "pointer",
+                                transition: "all 0.2s"
+                              }}
+                            >
+                              - Remove Last Month
+                            </button>
+                          )}
                         </div>
                       </div>
                     </>
@@ -930,7 +1222,7 @@ export default function PredictBillPage() {
                           </thead>
                           <tbody>
                             {appliances.map(app => {
-                              const estMonthlyKWh = hasBills ? Math.round(((app.watts * app.hours * app.quantity * 30) / 1000) * 100) / 100 : 0;
+                              const estMonthlyKWh = Math.round(((app.watts * app.hours * app.quantity * 30) / 1000) * 100) / 100;
                               return (
                                 <tr key={app.id} style={{ borderBottom: "1px solid #e5e7eb", background: app.active ? "#faf8ff" : "transparent" }}>
                                   <td style={{ padding: "12px 8px" }}>
@@ -938,8 +1230,8 @@ export default function PredictBillPage() {
                                       type="checkbox" 
                                       checked={app.active} 
                                       onChange={() => handleApplianceToggle(app.id)}
-                                      disabled={!hasBills}
-                                      style={{ width: "18px", height: "18px", accentColor: "#6D4AFF", cursor: !hasBills ? "not-allowed" : "pointer" }}
+                                      disabled={loading}
+                                      style={{ width: "18px", height: "18px", accentColor: "#6D4AFF", cursor: "pointer" }}
                                     />
                                   </td>
                                   <td style={{ padding: "12px 8px", fontWeight: "500", color: app.active ? "#1f2937" : "#9ca3af", display: "flex", alignItems: "center", gap: "8px", borderBottom: "none" }}>
@@ -949,7 +1241,7 @@ export default function PredictBillPage() {
                                         placeholder="Enter appliance name"
                                         value={app.customName}
                                         onChange={(e) => handleApplianceChange(app.id, "customName", e.target.value)}
-                                        disabled={!hasBills}
+                                        disabled={loading}
                                         style={{ height: "34px", padding: "0 8px", borderRadius: "6px", border: "1px solid #d1d5db", width: "160px" }}
                                       />
                                     ) : (
@@ -965,8 +1257,8 @@ export default function PredictBillPage() {
                                           handleApplianceChange(app.id, "tonnage", val);
                                           handleApplianceChange(app.id, "watts", watts);
                                         }}
-                                        disabled={!hasBills}
-                                        style={{ height: "34px", padding: "0 4px", borderRadius: "6px", border: "1px solid #d1d5db", background: "white", fontWeight: "600", cursor: !hasBills ? "not-allowed" : "pointer" }}
+                                        disabled={loading}
+                                        style={{ height: "34px", padding: "0 4px", borderRadius: "6px", border: "1px solid #d1d5db", background: "white", fontWeight: "600", cursor: "pointer" }}
                                       >
                                         <option value="1.0">1.0 Ton (1000W)</option>
                                         <option value="1.5">1.5 Ton (1500W)</option>
@@ -980,7 +1272,7 @@ export default function PredictBillPage() {
                                       type="number" 
                                       value={app.watts} 
                                       onChange={(e) => handleApplianceChange(app.id, "watts", parseInt(e.target.value) || 0)}
-                                      disabled={!hasBills}
+                                      disabled={loading}
                                       style={{ width: "80px", height: "34px", padding: "0 8px", borderRadius: "6px", border: "1px solid #d1d5db" }}
                                       min="1"
                                     />
@@ -990,7 +1282,7 @@ export default function PredictBillPage() {
                                       type="number" 
                                       value={app.quantity} 
                                       onChange={(e) => handleApplianceChange(app.id, "quantity", parseInt(e.target.value) || 0)}
-                                      disabled={!hasBills}
+                                      disabled={loading}
                                       style={{ width: "60px", height: "34px", padding: "0 8px", borderRadius: "6px", border: "1px solid #d1d5db" }}
                                       min="1"
                                     />
@@ -1000,7 +1292,7 @@ export default function PredictBillPage() {
                                       type="number" 
                                       value={app.hours} 
                                       onChange={(e) => handleApplianceChange(app.id, "hours", parseFloat(e.target.value) || 0)}
-                                      disabled={!hasBills}
+                                      disabled={loading}
                                       style={{ width: "60px", height: "34px", padding: "0 8px", borderRadius: "6px", border: "1px solid #d1d5db" }}
                                       min="0"
                                       max="24"
@@ -1062,7 +1354,7 @@ export default function PredictBillPage() {
                   <button
                     className="predict-btn"
                     type="submit"
-                    disabled={loading || !hasBills}
+                    disabled={loading}
                   >
                     {loading ? "Predicting..." : "⚡ Predict Bill"}
                   </button>

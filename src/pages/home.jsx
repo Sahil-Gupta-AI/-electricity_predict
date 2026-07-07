@@ -62,6 +62,26 @@ export default function home() {
     const [predictAmount, setPredictAmount] = useState(location.state?.predictAmount || "");
     const [month, setMonth] = useState(location.state?.month || "");
     const [nextMonth, setNextMonth] = useState(location.state?.nextMonth || "");
+    const [historyBills, setHistoryBills] = useState([]);
+
+    useEffect(() => {
+        const fetchHistoryBills = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) return;
+
+                const res = await axios.get("/api/history/bills", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                setHistoryBills(res.data || []);
+            } catch (err) {
+                console.error("Error fetching bill history:", err);
+            }
+        };
+        fetchHistoryBills();
+    }, [amount]);
 
     useEffect(() => {
         // If we don't have predictions in the navigation state, fetch the latest one from the backend
@@ -120,28 +140,83 @@ export default function home() {
     const chartData = useMemo(() => {
         if (!month || !amount || !predictAmount) return [];
 
-        const [monthStr, yearStr] = month.split(" ");
-        const monthIndex = MONTH_NAMES.indexOf(monthStr);
-        const year = parseInt(yearStr);
         const currentBill = parseFloat(amount);
         const predictedBill = parseFloat(predictAmount);
 
-        const points = PREV_VARIATIONS.map((ratio, i) => {
-            const d = new Date(year, monthIndex - (4 - i), 1);
-            return {
-                month: MONTH_NAMES[((d.getMonth()) + 12) % 12],
-                bill: Math.round(currentBill * ratio),
-            };
+        // Group and sort historical bills from database
+        const otherBills = historyBills.filter(b => {
+            if (!b.billDate || b.billDate === "—") return false;
+            let bMonth = "";
+            const parts = b.billDate.split(/[\/\-\s]/);
+            if (parts.length >= 3) {
+                const monthPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+                const yearPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                bMonth = `${monthPart} ${yearPart}`;
+            }
+            return bMonth && bMonth !== month;
         });
 
-        points.push({ month: monthStr, bill: currentBill });
-        points.push({
+        const mappedBills = otherBills.map(b => {
+            let bMonthStr = "";
+            let bMonthLabel = "";
+            let dateObj = null;
+            const parts = b.billDate.split(/[\/\-\s]/);
+            if (parts.length >= 3) {
+                const monthPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+                const yearPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                bMonthStr = `${monthPart} ${yearPart}`;
+                bMonthLabel = monthPart;
+                dateObj = dayjs(bMonthStr, "MMM YYYY");
+            }
+            return {
+                dateObj,
+                month: bMonthLabel || "Prev",
+                bill: b.amount
+            };
+        }).filter(item => item.dateObj && item.dateObj.isValid());
+
+        // Sort chronologically
+        mappedBills.sort((a, b) => a.dateObj.diff(b.dateObj));
+
+        // Take up to 4 most recent bills before current month
+        const targetDate = dayjs(month, "MMM YYYY");
+        const precedingBills = mappedBills.filter(item => item.dateObj.isBefore(targetDate));
+        const recentPreceding = precedingBills.slice(-4);
+
+        const points = recentPreceding.map(item => ({
+            month: item.month,
+            bill: item.bill
+        }));
+
+        // Pad with PREV_VARIATIONS for UI aesthetic completeness if fewer than 4 preceding bills
+        const paddedPoints = [];
+        if (points.length < 4) {
+            const [monthStr, yearStr] = month.split(" ");
+            const monthIndex = MONTH_NAMES.indexOf(monthStr);
+            const year = parseInt(yearStr);
+            const needed = 4 - points.length;
+            
+            for (let i = 0; i < needed; i++) {
+                const d = new Date(year, monthIndex - (4 - i), 1);
+                paddedPoints.push({
+                    month: MONTH_NAMES[((d.getMonth()) + 12) % 12],
+                    bill: Math.round(currentBill * PREV_VARIATIONS[i]),
+                });
+            }
+        }
+
+        const finalPoints = [...paddedPoints, ...points];
+        
+        const currentMonthStr = month.split(" ")[0];
+        finalPoints.push({ month: currentMonthStr, bill: currentBill });
+        
+        finalPoints.push({
             month: nextMonth ? nextMonth.split(" ")[0] : "Next",
             bill: predictedBill,
         });
 
-        return points;
-    }, [amount, predictAmount, month, nextMonth]);
+        return finalPoints;
+    }, [amount, predictAmount, month, nextMonth, historyBills]);
 
     const yTicks = useMemo(() => {
         if (!chartData.length) return [0, 1000, 2000, 3000];
