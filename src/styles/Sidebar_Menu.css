@@ -134,7 +134,8 @@
 }
 
 .navbar-logo {
-  height: 80px;
+  height: 70px;
   width: auto;
   object-fit: contain;
+  padding: 4px 0;
 }
