@@ -10,6 +10,7 @@ import {
 } from "recharts";
 
 import { useEffect } from "react";
+import dayjs from "dayjs";
 
 const mockData = [
     { month: "Jan 2026", units: 420, amount: 3780, status: "Paid" },
@@ -26,17 +27,52 @@ const mockData = [
     { month: "Dec 2026", units: 460, amount: 4140, status: "Pending" },
 ];
 
-const parseBillDate = (rawDate) => {
-    if (!rawDate || rawDate === "—") return "Unknown";
-    const parts = rawDate.split(/[\/\-\s]/);
-    if (parts.length >= 3) {
+const parseBillDateToMonthYear = (rawDate) => {
+    if (!rawDate || rawDate === "—") return "";
+    if (/^[A-Za-z]{3}\s+\d{4}$/.test(rawDate)) {
+        return rawDate;
+    }
+    const clean = rawDate.replace(/[\/\-\s]+/g, " ").trim();
+    const parts = clean.split(" ");
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (parts.length === 2) {
+        let monthPart = parts[0];
+        let yearPart = parts[1];
+        const monthIdx = months.findIndex(m => m.toLowerCase() === monthPart.toLowerCase().substring(0, 3));
+        if (monthIdx !== -1) {
+            monthPart = months[monthIdx];
+            if (yearPart.length === 2) yearPart = `20${yearPart}`;
+            return `${monthPart} ${yearPart}`;
+        }
+    }
+    if (parts.length === 3) {
         let monthPart = parts[1];
-        monthPart = monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
         let yearPart = parts[2];
+        if (/^\d+$/.test(monthPart)) {
+            const idx = parseInt(monthPart, 10) - 1;
+            if (idx >= 0 && idx < 12) {
+                monthPart = months[idx];
+            }
+        } else {
+            const monthIdx = months.findIndex(m => m.toLowerCase() === monthPart.toLowerCase().substring(0, 3));
+            if (monthIdx !== -1) {
+                monthPart = months[monthIdx];
+            }
+        }
         if (yearPart.length === 2) yearPart = `20${yearPart}`;
-        return `${monthPart} ${yearPart}`;
+        if (months.includes(monthPart) && /^\d{4}$/.test(yearPart)) {
+            return `${monthPart} ${yearPart}`;
+        }
+    }
+    const d = dayjs(rawDate);
+    if (d.isValid()) {
+        return d.format("MMM YYYY");
     }
     return rawDate;
+};
+
+const parseBillDate = (rawDate) => {
+    return parseBillDateToMonthYear(rawDate) || "Unknown";
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -63,7 +99,7 @@ export default function BillHistory() {
         const fetchHistory = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch("http://localhost:8000/api/history/bills", {
+                const res = await fetch("/api/history/bills", {
                     headers: token ? { "Authorization": `Bearer ${token}` } : {}
                 });
                 const data = await res.json();

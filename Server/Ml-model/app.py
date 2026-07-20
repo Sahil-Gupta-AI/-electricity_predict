@@ -27,45 +27,24 @@ if os.path.exists(tessdata_local):
 
 app = Flask(__name__)
 
+history_models = {}
+history_columns = {}
+
+# Load Model 1 (Default/Fallback)
 ensemble_model = joblib.load("ensemble_model.pkl")
 columns = joblib.load("feature_columns.pkl")
 print("Model 1 loaded. Columns:", columns)
+history_models[1] = ensemble_model
+history_columns[1] = columns
 
-ensemble_model_2 = None
-columns_2 = None
-if os.path.exists("ensemble_model_2.pkl") and os.path.exists("feature_columns_2.pkl"):
-    ensemble_model_2 = joblib.load("ensemble_model_2.pkl")
-    columns_2 = joblib.load("feature_columns_2.pkl")
-    print("Model 2 loaded. Columns:", columns_2)
-
-ensemble_model_3 = None
-columns_3 = None
-if os.path.exists("ensemble_model_3.pkl") and os.path.exists("feature_columns_3.pkl"):
-    ensemble_model_3 = joblib.load("ensemble_model_3.pkl")
-    columns_3 = joblib.load("feature_columns_3.pkl")
-    print("Model 3 loaded. Columns:", columns_3)
-
-ensemble_model_4 = None
-columns_4 = None
-if os.path.exists("ensemble_model_4.pkl") and os.path.exists("feature_columns_4.pkl"):
-    ensemble_model_4 = joblib.load("ensemble_model_4.pkl")
-    columns_4 = joblib.load("feature_columns_4.pkl")
-    print("Model 4 loaded. Columns:", columns_4)
-
-ensemble_model_5 = None
-columns_5 = None
-if os.path.exists("ensemble_model_5.pkl") and os.path.exists("feature_columns_5.pkl"):
-    ensemble_model_5 = joblib.load("ensemble_model_5.pkl")
-    columns_5 = joblib.load("feature_columns_5.pkl")
-    print("Model 5 loaded. Columns:", columns_5)
-
-ensemble_model_6 = None
-columns_6 = None
-if os.path.exists("ensemble_model_6.pkl") and os.path.exists("feature_columns_6.pkl"):
-    ensemble_model_6 = joblib.load("ensemble_model_6.pkl")
-    columns_6 = joblib.load("feature_columns_6.pkl")
-    print("Model 6 loaded. Columns:", columns_6)
-
+# Load Models 2 to 12
+for i in range(2, 13):
+    model_path = f"ensemble_model_{i}.pkl"
+    cols_path = f"feature_columns_{i}.pkl"
+    if os.path.exists(model_path) and os.path.exists(cols_path):
+        history_models[i] = joblib.load(model_path)
+        history_columns[i] = joblib.load(cols_path)
+        print(f"Model {i} loaded. Columns count: {len(history_columns[i])}")
 
 appliance_model = None
 appliance_columns = None
@@ -267,7 +246,13 @@ def predict():
         try:
             month = int(month_raw)
         except (ValueError, TypeError):
-            month = datetime.strptime(str(month_raw), "%b %Y").month
+            try:
+                month = datetime.strptime(str(month_raw), "%b %Y").month
+            except ValueError:
+                try:
+                    month = datetime.strptime(str(month_raw), "%m %Y").month
+                except ValueError:
+                    month = datetime.now().month
 
     print(f"Parsed month: {month}")
 
@@ -348,6 +333,7 @@ def predict():
         fixed = parse_tariff_value(data.get("fixedCharge"))
         rate = parse_tariff_value(data.get("energyRate"))
         fac_rate = parse_tariff_value(data.get("fac"))
+        wheeling_rate = parse_tariff_value(data.get("wheeling"))
         # If FAC is passed as a flat charge (larger than standard unit rates, e.g. > 1.50/KWh), fall back to standard 0.40/KWh
         if fac_rate > 1.5:
             fac_rate = 0.40
@@ -365,14 +351,16 @@ def predict():
         if rate > 0:
             energy_charges = predictUnit * rate
             fac_charges = predictUnit * fac_rate
-            subtotal = fixed + energy_charges + fac_charges
+            wheeling_charges = predictUnit * wheeling_rate
+            subtotal = fixed + energy_charges + fac_charges + wheeling_charges
             duty_charge = subtotal * (duty_pct / 100.0)
             tariff_pred = subtotal + duty_charge
             
             if units > 0 and amount > 0:
                 energy_prev = units * rate
                 fac_prev = units * fac_rate
-                subtotal_prev = fixed + energy_prev + fac_prev
+                wheeling_prev = units * wheeling_rate
+                subtotal_prev = fixed + energy_prev + fac_prev + wheeling_prev
                 duty_prev = subtotal_prev * (duty_pct / 100.0)
                 tariff_prev = subtotal_prev + duty_prev
                 
@@ -435,7 +423,7 @@ def predict():
             1: {"unit": units, "amount": amount}
         }
         
-        for lag in range(2, 7):
+        for lag in range(2, 13):
             u_val = data.get(f"unit{lag}")
             a_val = data.get(f"amount{lag}")
             if u_val is not None and a_val is not None:
@@ -466,21 +454,9 @@ def predict():
         model_to_use = None
         cols_to_use = None
         
-        if consecutive_lags == 6 and ensemble_model_6 is not None:
-            model_to_use = ensemble_model_6
-            cols_to_use = columns_6
-        elif consecutive_lags == 5 and ensemble_model_5 is not None:
-            model_to_use = ensemble_model_5
-            cols_to_use = columns_5
-        elif consecutive_lags == 4 and ensemble_model_4 is not None:
-            model_to_use = ensemble_model_4
-            cols_to_use = columns_4
-        elif consecutive_lags == 3 and ensemble_model_3 is not None:
-            model_to_use = ensemble_model_3
-            cols_to_use = columns_3
-        elif consecutive_lags == 2 and ensemble_model_2 is not None:
-            model_to_use = ensemble_model_2
-            cols_to_use = columns_2
+        if consecutive_lags in history_models:
+            model_to_use = history_models[consecutive_lags]
+            cols_to_use = history_columns[consecutive_lags]
             
         if model_to_use is not None and cols_to_use is not None:
             print(f"{consecutive_lags}-month lag prediction model selected.")
@@ -527,9 +503,17 @@ def predict():
             print("1-month DataFrame:\n", df)
             predicted_raw = float(ensemble_model.predict(df)[0])
 
-        # If the input units are below the training set range, scale the prediction linearly (only for 1-month model)
-        if consecutive_lags == 1 and units < 53 and units > 0:
-            predictUnit = round(predicted_raw * (units / 53.0))
+        # Personalize and scale down predicted units if the user's historical consumption is extremely low (OOD)
+        # We look at the average of all available lag units to represent their typical usage scale.
+        lag_units_list = [lags_data[i]["unit"] for i in range(1, consecutive_lags + 1) if i in lags_data]
+        avg_lag_units = sum(lag_units_list) / len(lag_units_list) if lag_units_list else units
+        
+        distribution_threshold = 100.0
+        if avg_lag_units < distribution_threshold and avg_lag_units > 0:
+            scale_ratio = avg_lag_units / distribution_threshold
+            predictUnit = round(predicted_raw * scale_ratio)
+            # Ensure it doesn't fall below a sensible minimum of 1
+            predictUnit = max(1, predictUnit)
         else:
             predictUnit = max(round(predicted_raw), 0)  # Ensure non-negative unit prediction
 
@@ -537,6 +521,7 @@ def predict():
         fixed = parse_tariff_value(data.get("fixedCharge"))
         rate = parse_tariff_value(data.get("energyRate"))
         fac_rate = parse_tariff_value(data.get("fac"))
+        wheeling_rate = parse_tariff_value(data.get("wheeling"))
         # If FAC is passed as a flat charge (larger than standard unit rates, e.g. > 1.50/KWh), fall back to standard 0.40/KWh
         if fac_rate > 1.5:
             fac_rate = 0.40
@@ -549,19 +534,21 @@ def predict():
             duty_pct = parse_tariff_value(duty_val)
             if duty_pct == 0:
                 duty_pct = 16.0
-
+ 
         default_amount = calculate_default_tariff(provider, predictUnit)
         if rate > 0:
             energy_charges = predictUnit * rate
             fac_charges = predictUnit * fac_rate
-            subtotal = fixed + energy_charges + fac_charges
+            wheeling_charges = predictUnit * wheeling_rate
+            subtotal = fixed + energy_charges + fac_charges + wheeling_charges
             duty_charge = subtotal * (duty_pct / 100.0)
             tariff_pred = subtotal + duty_charge
             
             if units > 0 and amount > 0:
                 energy_prev = units * rate
                 fac_prev = units * fac_rate
-                subtotal_prev = fixed + energy_prev + fac_prev
+                wheeling_prev = units * wheeling_rate
+                subtotal_prev = fixed + energy_prev + fac_prev + wheeling_prev
                 duty_prev = subtotal_prev * (duty_pct / 100.0)
                 tariff_prev = subtotal_prev + duty_prev
                 
@@ -607,6 +594,8 @@ def predict():
 
 
 def translate_marathi_digits(text):
+    # Remove Zero Width Joiner and Zero Width Non-Joiner characters to normalize text
+    text = text.replace('\u200d', '').replace('\u200c', '')
     marathi_to_english = {
         '०': '0', '१': '1', '२': '2', '३': '3', '४': '4',
         '५': '5', '६': '6', '७': '7', '८': '8', '९': '9'
@@ -621,6 +610,8 @@ def parse_bill_text(text):
     # Preprocess to strip out percentage qualifiers like (16 %)
     text = re.sub(r'\(\d+\s*%\)', '', text)
     
+    wheeling_charge = None
+    
     def find(patterns, default="—"):
         for pat in patterns:
             m = re.search(pat, text, re.IGNORECASE)
@@ -631,24 +622,34 @@ def parse_bill_text(text):
 
     def find_amount(patterns, default="—"):
         for pat in patterns:
-            m = re.search(pat, text, re.IGNORECASE)
-            if m:
+            for m in re.finditer(pat, text, re.IGNORECASE):
                 val = m.group(1) if m.groups() else m.group(0)
-                raw = val.replace(",", "").strip()
+                val_clean = re.sub(r'^[^\d]+', '', val)
+                raw = val_clean.replace(",", "").strip()
                 try:
                     val_float = float(raw)
+                    if abs(val_float - 1912.0) < 0.1:
+                        continue
+                    if val_float < 50.0:
+                        continue
                     return f"₹{round(val_float):,}"
                 except ValueError:
-                    return f"₹{raw}"
+                    if raw and raw != "—":
+                        return f"₹{raw}"
         return default
 
     def find_units(patterns, default="—"):
         for pat in patterns:
-            m = re.search(pat, text, re.IGNORECASE)
-            if m:
+            for m in re.finditer(pat, text, re.IGNORECASE):
                 val = m.group(1) if m.groups() else m.group(0)
+                match_start = m.start()
+                context = text[max(0, match_start - 35):match_start].lower()
+                if any(x in context for x in ["billing unit", "बिलींग युनिट", "billing_unit", "b.u"]):
+                    continue
                 try:
                     val_float = float(val)
+                    if val_float <= 5.0 or val_float > 10000.0:
+                        continue
                     return f"{round(val_float)} KWh"
                 except ValueError:
                     return f"{val.strip()} KWh"
@@ -683,6 +684,7 @@ def parse_bill_text(text):
             prev_limit = limit
 
         # 1. Extract wheeling charge from the bill if present
+        nonlocal wheeling_charge
         wheeling_charge = None
         wheel_match = re.search(r'(?:वहन|AeA|wheel)[^\n\d]*([0-9\.]+)', text, re.IGNORECASE)
         if wheel_match:
@@ -787,6 +789,10 @@ def parse_bill_text(text):
                 base = base_rates_candidate[i]
                 fac = fac_rates_candidate[i] if (fac_rates_candidate and i < len(fac_rates_candidate)) else 0.0
                 
+                # Clean up any FAC anomalies (e.g. 0.4 -> 0.40)
+                if fac >= 4.0 and base > 10.0:
+                    fac = 0.40
+                    
                 total_rate = base
                 
                 slabs.append({
@@ -879,9 +885,9 @@ def parse_bill_text(text):
     # Extract Bill Date with fallback
     bill_date = find([
         r'देयक\s*दिनांक\s*[:\-]?\s*(\d{1,2}[\/\-\s][A-Za-z]{3,10}[\/\-\s]\d{2,4})',
-        r'Bill\s*Date\s*[:\-]?\s*(\d{1,2}[\/\-\s][A-Za-z]{3,10}[\/\-\s]\d{2,4})',
+        r'Bill?\s*Date\s*[:\-]?\s*(\d{1,2}[\/\-\s][A-Za-z]{3,10}[\/\-\s]\d{2,4})',
         r'\b\d{12}\b.*?\b(\d{1,2}-[A-Za-z]{3}-\d{2,4})\b',
-        r'Bill\s*Date\s*[:\-]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+        r'Bill?\s*Date\s*[:\-]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
         r'Date\s*of\s*Bill\s*[:\-]?\s*(\d{1,2}[\/\-][A-Za-z]{3,10}[\/\-]\d{2,4})',
         r'दिनांक\s*[:\-]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
         r'देयक\s*दिनांक\s*[:\-]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
@@ -938,11 +944,14 @@ def parse_bill_text(text):
             except Exception:
                 continue
         return find_units([
+            r'Total\s*Consumption\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)\b',
+            r'([0-9]+(?:\.[0-9]+)?)\s*(?:kWh|KWh|KWH)\b',
+            r'Total\s+([0-9]+)\s+(?:Units|units|Ss)\b',
+            r'वापरलेली\s*युनिट्स\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)\b',
+            r'([0-9]+(?:\.[0-9]+)?)\s*(?:युनिट्स|युनिट)\b',
             r'Current\s*(?:Month\s*)?Units\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
             r'Units\s*(?:This|Current)\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
             r'Units\s*Consumed\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
-            r'MF\s+Unit\s+Adj\.\s+Unit\s+Total[\s\S]{1,100}?\n\s*\d+\s+\d+\s+\d+\s+(\d+)',
-            r'वापरलेली\s*युनिट्स\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
             r'एकूण\s*युनिट्स?\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
             r'युनिट्स\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
             r'युनिट\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)',
@@ -971,7 +980,7 @@ def parse_bill_text(text):
             if prev_amt_val.replace('.', '').isdigit():
                 prev_amount = f"₹{int(float(prev_amt_val))}"
             
-            for date_str, amt_str in history_match[:6]:
+            for date_str, amt_str in history_match[:12]:
                 clean_amt = amt_str.replace(',', '').strip()
                 if clean_amt.replace('.', '').isdigit():
                     payment_history.append({
@@ -979,16 +988,36 @@ def parse_bill_text(text):
                         "amount": f"₹{int(float(clean_amt))}"
                     })
 
+    # Billing history table parsing fallback (e.g. Jun-2026 4345 64476.61)
+    if not payment_history:
+        billing_history_matches = re.findall(
+            r'\b([A-Za-z]{3,9}[-\s,]*\d{4})[\s,]+([0-9]+)[\s\S]{0,15}?([0-9]{3,7}(?:\.[0-9]{1,2})?)\b',
+            text
+        )
+        if billing_history_matches:
+            for m in billing_history_matches:
+                month_str, units_str, amt_str = m
+                valid_months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+                if any(month_str.lower().startswith(vm) for vm in valid_months):
+                    try:
+                        clean_amt = float(amt_str)
+                        if clean_amt > 50.0 and len(payment_history) < 12:
+                            payment_history.append({
+                                "date": month_str,
+                                "units": f"{units_str} KWh",
+                                "amount": f"₹{round(clean_amt):,}"
+                            })
+                    except ValueError:
+                        pass
+
     curr_amount = find_amount([
-        r'देयक\s*रक्कम\s*(?:रु)?\s*[:\-]?\s*([0-9,]+(?:\.[0-9]+)?)\b',
-        r'देयकाची\s*निव्वळ\s*रक्कम\s*[:\-]?\s*([0-9,]+(?:\.[0-9]+)?)\b',
-        r'पूर्णांक\s*देयक\s*\(?रु\.?\)?\s*([0-9,]+(?:\.[0-9]+)?)\b',
-        r'\b(?:Rounded|Total|Net|eth\s*eae|Rounded\s*Bill|Net\s*Bill\s*Amount|Total\s*Current\s*Bill|Net\s*Payable|Bill\s*Amount|एकूण\s*देय\s*रक्कम|देय\s*रक्कम|एकूण\s*रक्कम)\b[^0-9\n]{0,20}([0-9,]+(?:\.[0-9]+)?)\b',
-        r'Current\s*Amount\s*[:\-]?\s*[₹Rs\.]*\s*([0-9,]+(?:\.[0-9]+)?)',
-        r'Net\s*(?:Payable|Amount)\s*[:\-]?\s*[₹Rs\.]*\s*([0-9,]+(?:\.[0-9]+)?)',
-        r'Total\s*Amount\s*[:\-]?\s*[₹Rs\.]*\s*([0-9,]+(?:\.[0-9]+)?)',
-        r'Rounded\s+Bill\s*\(?Rs\)?\s*([0-9,]+(?:\.[0-9]+)?)',
-        r'एकूण\s*देय\s*रक्कम\s*[:\-]?\s*[₹Rs\.]*\s*([0-9,]+(?:\.[0-9]+)?)',
+        r'Total\s*Bill\s*Amount\s*\(Rounded\)\s*Rs\.?\s*([0-9,]+(?:\.[0-9]+)?)\b',
+        # Match with prefix
+        r'\b(?:Total\s*Amount\s*Payable|एकूण\s*देय\s*रक्कम|देयक\s*रक्कम|देयकाची\s*निव्वळ\s*रक्कम|देय\s*रक्कम|एकूण\s*रक्कम|Rounded|Total|Net|Net\s*Payable|Bill\s*Amount)\b[\s\S]{0,100}?(?:₹|%|=|रु|Rs\.?|र\s*)\s*([0-9,]+(?:\.[0-9]+)?)\b',
+        # Match without prefix but ensure it's a larger number and doesn't contain ZWJ/letters in between if possible, or is just a fallback
+        r'\b(?:Total\s*Amount\s*Payable|एकूण\s*देय\s*रक्कम|देयक\s*रक्कम|देयकाची\s*निव्वळ\s*रक्कम|देय\s*रक्कम|एकूण\s*रक्कम|Rounded|Total|Net|Net\s*Payable|Bill\s*Amount)\b[\s\S]{0,100}?([0-9,]+(?:\.[0-9]+)?)\b',
+        # General fallback for any Rs./₹/रू./=/% followed by a number of 3-5 digits
+        r'(?:₹|%|=|रु|रू\.|Rs\.?)\s*([0-9,]{3,7}(?:\.[0-9]{1,2})?)\b',
     ])
 
     # Bill summary
@@ -996,7 +1025,7 @@ def parse_bill_text(text):
         r'\b(?:Energy\s*Charges?|ate\s*STR|वीज\s*आकार|विद्युत\s*आकार|ऊर्जा\s*आकार)\b[^0-9\n]{0,20}([0-9,]+(?:\.[0-9]+)?)\b',
         r'Energy\s*Charges?\s*[:\-]?\s*[₹Rs\.]*\s*([0-9,]+(?:\.[0-9]+)?)',
         r'विद्युत\s*आकार\s*[:\-]?\s*[₹Rs\.]*\s*([0-9,]+(?:\.[0-9]+)?)',
-        r'(?xt)(?<!/)\bEnergy\b[^0-9\n]{0,20}([0-9,]+(?:\.[0-9]+)?)\b',
+        r'(?<!/)\bEnergy\b[^0-9\n]{0,20}([0-9,]+(?:\.[0-9]+)?)\b',
     ])
     fixed = find_amount([
         r'\b(?:Fixed|Fixed\s*Charges?|PROTA|स्थिर|नियत)\b[^0-9\n]{0,20}([0-9,]+(?:\.[0-9]+)?)\b',
@@ -1025,7 +1054,7 @@ def parse_bill_text(text):
         if base_fixed_charge:
             break
             
-    if base_fixed_charge:
+    if base_fixed_charge and (not fixed or fixed == "—"):
         fixed = f"₹{base_fixed_charge}"
 
     fac_raw = find_amount([
@@ -1069,6 +1098,7 @@ def parse_bill_text(text):
             detected_city = c
             break
 
+    slabs_data = extract_slabs()
     return {
         "company": {
             "name": company_name,
@@ -1098,13 +1128,257 @@ def parse_bill_text(text):
             "energy": energy,
             "fixed": fixed,
             "fac": fac,
+            "wheeling": f"₹{wheeling_charge:.2f}" if wheeling_charge else "—",
             "duty": duty,
             "other": other,
             "total": total,
         },
-        "slabs": extract_slabs(),
+        "slabs": slabs_data,
         "history": payment_history,
     }
+
+
+def extract_graph_history_hybrid(page_image, bill_date_str, company_key, bill_text):
+    w, h = page_image.size
+    is_6_month = "bhiwandi" in bill_text.lower() or "shahapur" in bill_text.lower() or "6 months" in bill_text.lower()
+    
+    if is_6_month:
+        graph_box = (int(w * 0.03), int(h * 0.52), int(w * 0.97), int(h * 0.77))
+        layout_type = 6
+        x_start = 220
+        spacing = 217
+    else:
+        graph_box = (int(w * 0.03), int(h * 0.52), int(w * 0.68), int(h * 0.76))
+        layout_type = 12
+        x_start = 158
+        spacing = 76.5
+        
+    graph_crop = page_image.crop(graph_box)
+    crop_w, crop_h = graph_crop.size
+    
+    df = pytesseract.image_to_data(graph_crop, lang="eng", config="--psm 11", output_type=pytesseract.Output.DATAFRAME)
+    df = df[df['text'].notna()]
+    df['text'] = df['text'].astype(str).str.strip()
+    df = df[(df['text'] != "") & (df['conf'] >= 50)]
+    
+    digits = []
+    for idx, row in df.iterrows():
+        text = row['text']
+        if text.isdigit():
+            val = int(text)
+            if row['left'] < 0.08 * crop_w:
+                continue
+            if val in [2024, 2025, 2026, 2027] or val > 5000:
+                continue
+            digits.append({
+                "val": val,
+                "left": row['left'],
+                "top": row['top']
+            })
+            
+    if not digits:
+        if not is_6_month:
+            graph_box = (int(w * 0.03), int(h * 0.52), int(w * 0.97), int(h * 0.77))
+            graph_crop = page_image.crop(graph_box)
+            crop_w, crop_h = graph_crop.size
+            df = pytesseract.image_to_data(graph_crop, lang="eng", config="--psm 11", output_type=pytesseract.Output.DATAFRAME)
+            df = df[df['text'].notna()]
+            df['text'] = df['text'].astype(str).str.strip()
+            df = df[(df['text'] != "") & (df['conf'] >= 50)]
+            digits = []
+            for idx, row in df.iterrows():
+                text = row['text']
+                if text.isdigit():
+                    val = int(text)
+                    if row['left'] < 0.08 * crop_w:
+                        continue
+                    if val in [2024, 2025, 2026, 2027] or val > 5000:
+                        continue
+                    digits.append({
+                        "val": val,
+                        "left": row['left'],
+                        "top": row['top']
+                    })
+        if not digits:
+            return []
+            
+    cols = []
+    for d in digits:
+        matched = False
+        for c in cols:
+            if abs(c['left'] - d['left']) < 30:
+                if d['top'] < c['top']:
+                    c['val'] = d['val']
+                    c['top'] = d['top']
+                matched = True
+                break
+        if not matched:
+            cols.append(d.copy())
+            
+    cols = sorted(cols, key=lambda x: x['left'])
+    
+    from datetime import datetime, timedelta
+    
+    def parse_date_locale_independent(date_str):
+        clean_str = date_str.replace("/", "-").replace(" ", "-").strip()
+        clean_str = re.sub(r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '', clean_str)
+        
+        m = re.match(r'^(\d{1,2})-(\d{1,2})-(\d{2,4})$', clean_str)
+        if m:
+            day = int(m.group(1))
+            month = int(m.group(2))
+            year = int(m.group(3))
+            if year < 100:
+                year += 2000
+            try:
+                return datetime(year, month, day)
+            except ValueError:
+                pass
+                
+        m = re.match(r'^(\d{1,2})-([A-Za-z]{3,10})-(\d{2,4})$', clean_str)
+        if m:
+            day = int(m.group(1))
+            month_str = m.group(2).lower()[:3]
+            year = int(m.group(3))
+            if year < 100:
+                year += 2000
+            months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+            if month_str in months:
+                month = months.index(month_str) + 1
+                try:
+                    return datetime(year, month, day)
+                except ValueError:
+                    pass
+                    
+        m = re.match(r'^([A-Za-z]{3,10})-(\d{2,4})$', clean_str)
+        if m:
+            month_str = m.group(1).lower()[:3]
+            year = int(m.group(2))
+            if year < 100:
+                year += 2000
+            months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+            if month_str in months:
+                month = months.index(month_str) + 1
+                try:
+                    return datetime(year, month, 1)
+                except ValueError:
+                    pass
+                    
+        for fmt in ["%d-%m-%Y", "%d-%m-%y", "%m-%Y", "%Y-%m-%d"]:
+            try:
+                return datetime.strptime(clean_str, fmt)
+            except ValueError:
+                continue
+        return None
+
+    bill_date = parse_date_locale_independent(bill_date_str)
+    if not bill_date:
+        bill_date = datetime.now()
+        
+    months_list = []
+    curr_date = bill_date
+    for i in range(layout_type):
+        first = curr_date.replace(day=1)
+        prev_month = first - timedelta(days=1)
+        months_list.append(prev_month.strftime("%b-%Y"))
+        curr_date = prev_month
+        
+    history = []
+    mapped_units = [None] * layout_type
+    
+    max_allowed_dist = 45 if layout_type == 6 else 25
+    for c in cols:
+        idx = int(round((c['left'] - x_start) / spacing))
+        if 0 <= idx < layout_type:
+            expected_x = x_start + idx * spacing
+            dist = abs(c['left'] - expected_x)
+            if dist <= max_allowed_dist:
+                mapped_units[idx] = c['val']
+            
+    # Interpolate missing values in mapped_units to keep history complete
+    for i in range(layout_type):
+        if mapped_units[i] is None:
+            left_val = None
+            left_idx = -1
+            for l in range(i - 1, -1, -1):
+                if mapped_units[l] is not None:
+                    left_val = mapped_units[l]
+                    left_idx = l
+                    break
+            
+            right_val = None
+            right_idx = -1
+            for r in range(i + 1, layout_type):
+                if mapped_units[r] is not None:
+                    right_val = mapped_units[r]
+                    right_idx = r
+                    break
+                    
+            if left_val is not None and right_val is not None:
+                mapped_units[i] = int(round(left_val + (right_val - left_val) * (i - left_idx) / (right_idx - left_idx)))
+            elif left_val is not None:
+                mapped_units[i] = left_val
+            elif right_val is not None:
+                mapped_units[i] = right_val
+            else:
+                mapped_units[i] = 50
+                
+    for idx in range(layout_type):
+        units = mapped_units[idx]
+        if layout_type == 6:
+            month_name = months_list[layout_type - 1 - idx]
+        else:
+            month_name = months_list[idx]
+        amount = calculate_default_tariff(company_key, units)
+        history.append({
+            "date": month_name,
+            "units": f"{units} KWh",
+            "amount": f"₹{amount}"
+        })
+            
+    return history
+
+
+def merge_history(payment_history, graph_history):
+    def get_month_key(date_str):
+        m = re.search(r'\b([A-Za-z]{3,9})[-\s,]*(\d{4})\b', date_str)
+        if m:
+            return f"{m.group(1)[:3].lower()}-{m.group(2)}"
+        return None
+
+    merged = {}
+    
+    for item in graph_history:
+        m_key = get_month_key(item["date"])
+        if m_key:
+            merged[m_key] = {
+                "date": item["date"],
+                "units": item.get("units"),
+                "amount": item.get("amount")
+            }
+            
+    for item in payment_history:
+        m_key = get_month_key(item["date"])
+        if m_key:
+            if m_key in merged:
+                merged[m_key]["date"] = item["date"]
+                merged[m_key]["amount"] = item["amount"]
+                if "units" in item and item["units"] and item["units"] != "—":
+                    merged[m_key]["units"] = item["units"]
+            else:
+                merged[m_key] = item
+                
+    from datetime import datetime
+    def sort_key(item):
+        date_str = item["date"]
+        for fmt in ["%d-%b-%Y", "%b-%Y", "%d-%b-%y"]:
+            try:
+                return datetime.strptime(date_str.replace("/", "-").replace(" ", "-"), fmt)
+            except ValueError:
+                continue
+        return datetime.min
+        
+    return sorted(merged.values(), key=sort_key, reverse=True)
 
 
 @app.route("/extract", methods=["POST"])
@@ -1164,10 +1438,42 @@ def extract():
                 scale = 1200 / w
                 img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
             text = pytesseract.image_to_string(img, lang="eng+mar")
+            pages = [img]
 
         print("OCR raw text (first 400 chars):", ascii(text[:400]))
         text = translate_marathi_digits(text)
         parsed = parse_bill_text(text)
+        
+        if pages:
+            try:
+                company_key = "tata"
+                company_name_raw = parsed.get("company", {}).get("name", "")
+                if company_name_raw:
+                    n = company_name_raw.lower()
+                    if "torrent" in n:
+                        company_key = "torrent"
+                    elif "msedcl" in n or "mahavitaran" in n or "mahadiscom" in n or "maharashtra state" in n or "महावितरण" in n or "महाराष्ट्र राज्य" in n:
+                        company_key = "msedcl"
+                    elif "tata" in n:
+                        company_key = "tata"
+                    elif "adani" in n:
+                        company_key = "adani"
+                    elif "best" in n:
+                        company_key = "best"
+                
+                bill_date_str = parsed.get("consumer", {}).get("billDate", "")
+                from datetime import datetime
+                if not bill_date_str or bill_date_str == "—":
+                    bill_date_str = datetime.now().strftime("%d-%b-%Y")
+                
+                print(f"[GRAPH] Attempting graph history extraction with company_key={company_key}, bill_date={bill_date_str}")
+                graph_hist = extract_graph_history_hybrid(pages[0], bill_date_str, company_key, text)
+                if graph_hist:
+                    print(f"[GRAPH] Successfully extracted {len(graph_hist)} items from graph")
+                    parsed["history"] = merge_history(parsed.get("history", []), graph_hist)
+            except Exception as graph_err:
+                print("[GRAPH] Error extracting graph history:", graph_err)
+
         parsed["rawText"] = text
         return jsonify(parsed)
 

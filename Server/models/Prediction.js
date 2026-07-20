@@ -47,6 +47,10 @@ const PredictionSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  wheeling: {
+    type: String,
+    default: ""
+  },
   createdAt: {
     type: Date,
     default: Date.now

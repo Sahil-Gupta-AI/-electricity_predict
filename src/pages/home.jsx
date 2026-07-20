@@ -40,6 +40,50 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
+const parseBillDateToMonthYear = (rawDate) => {
+    if (!rawDate || rawDate === "—") return "";
+    if (/^[A-Za-z]{3}\s+\d{4}$/.test(rawDate)) {
+        return rawDate;
+    }
+    const clean = rawDate.replace(/[\/\-\s]+/g, " ").trim();
+    const parts = clean.split(" ");
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (parts.length === 2) {
+        let monthPart = parts[0];
+        let yearPart = parts[1];
+        const monthIdx = months.findIndex(m => m.toLowerCase() === monthPart.toLowerCase().substring(0, 3));
+        if (monthIdx !== -1) {
+            monthPart = months[monthIdx];
+            if (yearPart.length === 2) yearPart = `20${yearPart}`;
+            return `${monthPart} ${yearPart}`;
+        }
+    }
+    if (parts.length === 3) {
+        let monthPart = parts[1];
+        let yearPart = parts[2];
+        if (/^\d+$/.test(monthPart)) {
+            const idx = parseInt(monthPart, 10) - 1;
+            if (idx >= 0 && idx < 12) {
+                monthPart = months[idx];
+            }
+        } else {
+            const monthIdx = months.findIndex(m => m.toLowerCase() === monthPart.toLowerCase().substring(0, 3));
+            if (monthIdx !== -1) {
+                monthPart = months[monthIdx];
+            }
+        }
+        if (yearPart.length === 2) yearPart = `20${yearPart}`;
+        if (months.includes(monthPart) && /^\d{4}$/.test(yearPart)) {
+            return `${monthPart} ${yearPart}`;
+        }
+    }
+    const d = dayjs(rawDate);
+    if (d.isValid()) {
+        return d.format("MMM YYYY");
+    }
+    return rawDate;
+};
+
 export default function home() {
 
     const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
@@ -82,6 +126,34 @@ export default function home() {
         };
         fetchHistoryBills();
     }, [amount]);
+ 
+    useEffect(() => {
+        if (historyBills.length > 0 && !amount) {
+            const mapped = historyBills.map(b => {
+                const parsed = parseBillDateToMonthYear(b.billDate);
+                return {
+                    ...b,
+                    parsedDate: parsed,
+                    dateObj: parsed ? dayjs(parsed, "MMM YYYY") : null
+                };
+            }).filter(b => b.dateObj && b.dateObj.isValid());
+            
+            if (mapped.length > 0) {
+                mapped.sort((a, b) => b.dateObj.diff(a.dateObj));
+                const latestBill = mapped[0];
+                setAmount(String(latestBill.amount));
+                setUnit(String(latestBill.units));
+                setMonth(latestBill.parsedDate);
+                
+                if (latestBill.parsedDate) {
+                    const nextMonthName = dayjs(latestBill.parsedDate, "MMM YYYY")
+                        .add(1, "month")
+                        .format("MMM YYYY");
+                    setNextMonth(nextMonthName);
+                }
+            }
+        }
+    }, [historyBills, amount]);
 
     useEffect(() => {
         // If we don't have predictions in the navigation state, fetch the latest one from the backend
@@ -138,35 +210,13 @@ export default function home() {
     }, [amount, predictAmount]);
 
     const chartData = useMemo(() => {
-        if (!month || !amount || !predictAmount) return [];
-
-        const currentBill = parseFloat(amount);
-        const predictedBill = parseFloat(predictAmount);
-
-        // Group and sort historical bills from database
-        const otherBills = historyBills.filter(b => {
-            if (!b.billDate || b.billDate === "—") return false;
-            let bMonth = "";
-            const parts = b.billDate.split(/[\/\-\s]/);
-            if (parts.length >= 3) {
-                const monthPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
-                const yearPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
-                bMonth = `${monthPart} ${yearPart}`;
-            }
-            return bMonth && bMonth !== month;
-        });
-
-        const mappedBills = otherBills.map(b => {
-            let bMonthStr = "";
+        const mappedBills = historyBills.map(b => {
+            const parsed = parseBillDateToMonthYear(b.billDate);
             let bMonthLabel = "";
             let dateObj = null;
-            const parts = b.billDate.split(/[\/\-\s]/);
-            if (parts.length >= 3) {
-                const monthPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
-                const yearPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
-                bMonthStr = `${monthPart} ${yearPart}`;
-                bMonthLabel = monthPart;
-                dateObj = dayjs(bMonthStr, "MMM YYYY");
+            if (parsed) {
+                bMonthLabel = parsed.split(" ")[0];
+                dateObj = dayjs(parsed, "MMM YYYY");
             }
             return {
                 dateObj,
@@ -175,45 +225,75 @@ export default function home() {
             };
         }).filter(item => item.dateObj && item.dateObj.isValid());
 
-        // Sort chronologically
         mappedBills.sort((a, b) => a.dateObj.diff(b.dateObj));
 
-        // Take up to 4 most recent bills before current month
-        const targetDate = dayjs(month, "MMM YYYY");
-        const precedingBills = mappedBills.filter(item => item.dateObj.isBefore(targetDate));
-        const recentPreceding = precedingBills.slice(-4);
+        let points = [...mappedBills];
 
-        const points = recentPreceding.map(item => ({
+        if (month && amount) {
+            const currentBill = parseFloat(amount);
+            const currentMonthStr = month.split(" ")[0];
+            const targetDate = dayjs(month, "MMM YYYY");
+            
+            points = points.filter(item => !item.dateObj.isSame(targetDate, 'month'));
+            
+            points.push({
+                dateObj: targetDate,
+                month: currentMonthStr,
+                bill: currentBill
+            });
+            
+            points.sort((a, b) => a.dateObj.diff(b.dateObj));
+        }
+
+        if (nextMonth && predictAmount && month) {
+            const predictedBill = parseFloat(predictAmount);
+            const predictedMonthStr = nextMonth.split(" ")[0];
+            const predictedDate = dayjs(nextMonth, "MMM YYYY");
+            
+            points = points.filter(item => !item.dateObj.isSame(predictedDate, 'month'));
+            
+            points.push({
+                dateObj: predictedDate,
+                month: predictedMonthStr,
+                bill: predictedBill
+            });
+            
+            points.sort((a, b) => a.dateObj.diff(b.dateObj));
+        }
+
+        if (points.length < 6 && points.length > 0) {
+            const needed = 6 - points.length;
+            const firstPoint = points[0];
+            const baseBill = firstPoint.bill;
+            const firstDate = firstPoint.dateObj;
+            
+            const padded = [];
+            for (let i = needed; i > 0; i--) {
+                const prevDate = firstDate.subtract(i, "month");
+                padded.push({
+                    dateObj: prevDate,
+                    month: prevDate.format("MMM"),
+                    bill: Math.round(baseBill * (1 - (i * 0.05)))
+                });
+            }
+            points = [...padded, ...points];
+        }
+
+        if (points.length === 0) {
+            const baseDate = dayjs();
+            return Array.from({ length: 6 }, (_, idx) => {
+                const d = baseDate.subtract(5 - idx, "month");
+                return {
+                    month: d.format("MMM"),
+                    bill: 0
+                };
+            });
+        }
+
+        const finalPoints = points.slice(-6).map(item => ({
             month: item.month,
             bill: item.bill
         }));
-
-        // Pad with PREV_VARIATIONS for UI aesthetic completeness if fewer than 4 preceding bills
-        const paddedPoints = [];
-        if (points.length < 4) {
-            const [monthStr, yearStr] = month.split(" ");
-            const monthIndex = MONTH_NAMES.indexOf(monthStr);
-            const year = parseInt(yearStr);
-            const needed = 4 - points.length;
-            
-            for (let i = 0; i < needed; i++) {
-                const d = new Date(year, monthIndex - (4 - i), 1);
-                paddedPoints.push({
-                    month: MONTH_NAMES[((d.getMonth()) + 12) % 12],
-                    bill: Math.round(currentBill * PREV_VARIATIONS[i]),
-                });
-            }
-        }
-
-        const finalPoints = [...paddedPoints, ...points];
-        
-        const currentMonthStr = month.split(" ")[0];
-        finalPoints.push({ month: currentMonthStr, bill: currentBill });
-        
-        finalPoints.push({
-            month: nextMonth ? nextMonth.split(" ")[0] : "Next",
-            bill: predictedBill,
-        });
 
         return finalPoints;
     }, [amount, predictAmount, month, nextMonth, historyBills]);

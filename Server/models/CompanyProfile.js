@@ -22,6 +22,10 @@ const CompanyProfileSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  wheeling: {
+    type: String,
+    default: ""
+  },
   duty: {
     type: String,
     default: ""

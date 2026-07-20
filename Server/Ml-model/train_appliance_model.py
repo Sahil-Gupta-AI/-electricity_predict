@@ -85,7 +85,7 @@ def main():
     joblib.dump(app_model, 'appliance_model.pkl')
     joblib.dump(appliance_columns_list, 'appliance_columns.pkl')
 
-    for n_lags in range(1, 7):
+    for n_lags in range(1, 13):
         print(f"\n--- Training {n_lags}-month historical model ---")
         df_sorted_lag = df.copy()
         df_sorted_lag['Month_Date'] = pd.to_datetime(df_sorted_lag['Month'], format='%b-%Y')

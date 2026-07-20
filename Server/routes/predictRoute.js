@@ -93,6 +93,7 @@ router.post("/predict", authOptional, async (req, res) => {
                 fixedCharge: req.body.fixedCharge || "",
                 energyRate: req.body.energyRate || "",
                 fac: req.body.fac || "",
+                wheeling: req.body.wheeling || "",
                 duty: req.body.duty || ""
             });
 
@@ -125,6 +126,7 @@ router.get("/companies/tariff", async (req, res) => {
                 fixedCharge: p.fixedCharge,
                 energyRate: p.energyRate,
                 fac: p.fac,
+                wheeling: p.wheeling,
                 duty: p.duty
             };
         });

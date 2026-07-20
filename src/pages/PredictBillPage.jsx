@@ -104,8 +104,9 @@ export default function PredictBillPage() {
       logo: "src/assets/tata-power-logo.png",
       name: "Tata Power Tariff Details",
       fixedCharge: "₹135",
-      energyRate: "₹12.40",
+      energyRate: "₹4.43",
       fac: "₹0.00",
+      wheeling: "₹2.76",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -115,8 +116,9 @@ export default function PredictBillPage() {
       logo: "src/assets/Adani-logo.png",
       name: "Adani Electricity Tariff Details",
       fixedCharge: "₹135",
-      energyRate: "₹8.13",
+      energyRate: "₹2.65",
       fac: "₹0.65",
+      wheeling: "₹2.28",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -126,8 +128,9 @@ export default function PredictBillPage() {
       logo: "src/assets/MSEDCL-logo.png",
       name: "MSEDCL Tariff Details",
       fixedCharge: "₹130",
-      energyRate: "₹12.40",
-      fac: "₹0.25",
+      energyRate: "₹3.96",
+      fac: "₹0.15",
+      wheeling: "₹1.60",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -137,8 +140,9 @@ export default function PredictBillPage() {
       logo: "src/assets/torrent-power-logo.png",
       name: "Torrent Power Tariff Details",
       fixedCharge: "₹130",
-      energyRate: "₹12.57",
-      fac: "₹0.15",
+      energyRate: "₹4.28",
+      fac: "₹0.10",
+      wheeling: "₹1.47",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -148,8 +152,9 @@ export default function PredictBillPage() {
       logo: "src/assets/Best-power-logo.png",
       name: "BEST Power Tariff Details",
       fixedCharge: "₹135",
-      energyRate: "₹7.37",
+      energyRate: "₹2.10",
       fac: "₹0.75",
+      wheeling: "₹1.87",
       duty: "16%",
       category: "Residential",
       connection: "LT",
@@ -168,6 +173,7 @@ export default function PredictBillPage() {
               if (dbVal.fixedCharge) updated[key].fixedCharge = dbVal.fixedCharge;
               if (dbVal.energyRate) updated[key].energyRate = dbVal.energyRate;
               if (dbVal.fac) updated[key].fac = dbVal.fac;
+              if (dbVal.wheeling) updated[key].wheeling = dbVal.wheeling;
               if (dbVal.duty) updated[key].duty = dbVal.duty;
             }
           });
@@ -218,6 +224,7 @@ export default function PredictBillPage() {
     fixedCharge: customTariff?.fixedCharge || selectedCompany.fixedCharge,
     energyRate: customTariff?.energyRate || selectedCompany.energyRate,
     fac: customTariff?.fac || selectedCompany.fac,
+    wheeling: customTariff?.wheeling || selectedCompany.wheeling,
     duty: customTariff?.duty || selectedCompany.duty,
   } : null;
 
@@ -257,6 +264,24 @@ export default function PredictBillPage() {
     amount6: "",
     unit6: "",
     month6: "",
+    amount7: "",
+    unit7: "",
+    month7: "",
+    amount8: "",
+    unit8: "",
+    month8: "",
+    amount9: "",
+    unit9: "",
+    month9: "",
+    amount10: "",
+    unit10: "",
+    month10: "",
+    amount11: "",
+    unit11: "",
+    month11: "",
+    amount12: "",
+    unit12: "",
+    month12: "",
   });
   function handleChange(e) {
     const { id, value } = e.target;
@@ -322,7 +347,15 @@ export default function PredictBillPage() {
       if (rawDate && rawDate !== "—") {
         const parts = rawDate.split(/[\/\-\s]/);
         if (parts.length >= 3) {
-          const monthPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+          let monthPart = parts[1];
+          if (/^\d+$/.test(monthPart)) {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const idx = parseInt(monthPart, 10) - 1;
+            if (idx >= 0 && idx < 12) {
+              monthPart = monthNames[idx];
+            }
+          }
+          monthPart = monthPart.charAt(0).toUpperCase() + monthPart.slice(1).toLowerCase();
           const yearPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
           parsedMonth = `${monthPart} ${yearPart}`;
         }
@@ -332,6 +365,7 @@ export default function PredictBillPage() {
       const ocrFixed = initialBillDetails.summary?.fixed;
       const ocrFac = initialBillDetails.summary?.fac;
       const ocrDuty = initialBillDetails.summary?.duty;
+      const ocrWheeling = initialBillDetails.summary?.wheeling;
       let ocrEnergy = "";
       if (initialBillDetails.slabs && initialBillDetails.slabs.length > 0) {
         ocrEnergy = initialBillDetails.slabs[0].rate;
@@ -340,8 +374,9 @@ export default function PredictBillPage() {
       setCustomTariff({
         fixedCharge: ocrFixed && ocrFixed !== "—" ? ocrFixed : null,
         energyRate: ocrEnergy && ocrEnergy !== "—" ? ocrEnergy : null,
-        fac: null, // Fallback to company default unit rate to avoid using total charge
-        duty: null, // Fallback to company default percentage
+        fac: ocrFac && ocrFac !== "—" ? ocrFac : null,
+        wheeling: ocrWheeling && ocrWheeling !== "—" ? ocrWheeling : null,
+        duty: ocrDuty && ocrDuty !== "—" ? ocrDuty : null,
       });
 
       // Pre-fill tariff category from OCR if available
@@ -350,45 +385,62 @@ export default function PredictBillPage() {
         setTariffCategory({ value: ocrTariffCat, label: ocrTariffCat });
       }
 
-      // Extract and map all 6 previous months from billing/payment history
+      // Extract and map all 12 previous months from billing/payment history
       const lags = {};
-      for (let i = 2; i <= 6; i++) {
+      for (let i = 2; i <= 12; i++) {
         lags[`amount${i}`] = "";
         lags[`unit${i}`] = "";
         lags[`month${i}`] = "";
       }
 
+      let maxExtractedLag = 1;
       if (initialBillDetails.history && parsedMonth) {
         initialBillDetails.history.forEach(h => {
           const parts = h.date.split(/[\/\-\s]/);
+          let hMonthStr = "";
           if (parts.length >= 3) {
-            const mPart = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+            let mPart = parts[1];
+            if (/^\d+$/.test(mPart)) {
+              const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              const idx = parseInt(mPart, 10) - 1;
+              if (idx >= 0 && idx < 12) {
+                mPart = monthNames[idx];
+              }
+            }
+            const mPartFormatted = mPart.charAt(0).toUpperCase() + mPart.slice(1).toLowerCase();
             const yPart = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
-            const hMonthStr = `${mPart} ${yPart}`;
-            
+            hMonthStr = `${mPartFormatted} ${yPart}`;
+          } else if (parts.length === 2) {
+            const mPartFormatted = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+            const yPart = parts[1].length === 2 ? `20${parts[1]}` : parts[1];
+            hMonthStr = `${mPartFormatted} ${yPart}`;
+          }
+          
+          if (hMonthStr) {
             const diff = dayjs(parsedMonth, "MMM YYYY").diff(dayjs(hMonthStr, "MMM YYYY"), 'month');
             const lagIdx = diff + 1;
             
-            if (lagIdx >= 2 && lagIdx <= 6) {
+            if (lagIdx >= 2 && lagIdx <= 12) {
               const hAmt = parseFloat(h.amount.replace(/[^\d\.]/g, "")) || 0;
               lags[`amount${lagIdx}`] = hAmt ? String(hAmt) : "";
               lags[`month${lagIdx}`] = hMonthStr;
               
-              // Estimate units for this lag
+              if (hAmt > 0 && lagIdx > maxExtractedLag) {
+                maxExtractedLag = lagIdx;
+              }
+              
+              // Use parsed units if present, otherwise estimate
               let estUnits = "";
-              if (hAmt > 0) {
+              if (h.units) {
+                estUnits = String(parseFloat(h.units.replace(/[^\d\.]/g, "")) || "");
+              } else if (hAmt > 0) {
                 const fixedVal = parseFloat(String(ocrFixed || "130").replace(/[^\d\.]/g, "")) || 130;
                 const rateVal = parseFloat(String(ocrEnergy || "4.28").replace(/[^\d\.]/g, "")) || 4.28;
+                const wheelingVal = parseFloat(String(ocrWheeling || "0.0").replace(/[^\d\.]/g, "")) || 0.0;
                 const subtotal = hAmt / 1.16;
                 const energyCharges = subtotal - fixedVal;
                 if (energyCharges > 0) {
-                  let wheeling = 0.0;
-                  if (rateVal === 4.28 || rateVal === 11.10) wheeling = 1.47;
-                  else if (rateVal === 3.96 || rateVal === 10.80) wheeling = 1.60;
-                  else if (rateVal === 4.43 || rateVal === 9.64) wheeling = 2.76;
-                  else if (rateVal === 2.65 || rateVal === 5.85) wheeling = 2.28;
-                  else if (rateVal === 2.10 || rateVal === 5.50) wheeling = 1.87;
-                  estUnits = String(Math.max(0, Math.round(energyCharges / (rateVal + wheeling))));
+                  estUnits = String(Math.max(0, Math.round(energyCharges / (rateVal + wheelingVal))));
                 }
               }
               lags[`unit${lagIdx}`] = estUnits;
@@ -397,8 +449,9 @@ export default function PredictBillPage() {
         });
       }
 
-      // Interpolate any missing lags in the sequence
-      for (let i = 2; i <= 6; i++) {
+      // Interpolate any missing lags in the sequence up to the maximum extracted lag
+      const targetMaxLag = Math.max(2, maxExtractedLag);
+      for (let i = 2; i <= targetMaxLag; i++) {
         if (!lags[`amount${i}`]) {
           let prevVal = parseFloat(cleanedAmount) || 0;
           let prevUnit = parseFloat(cleanedUnits) || 0;
@@ -409,7 +462,7 @@ export default function PredictBillPage() {
           
           let nextVal = 0;
           let nextUnit = 0;
-          for (let j = i + 1; j <= 6; j++) {
+          for (let j = i + 1; j <= targetMaxLag; j++) {
             if (lags[`amount${j}`]) {
               nextVal = parseFloat(lags[`amount${j}`]) || 0;
               nextUnit = parseFloat(lags[`unit${j}`]) || 0;
@@ -431,14 +484,7 @@ export default function PredictBillPage() {
         }
       }
 
-      // Find maximum lag index that has data to set initial visibility
-      let maxLag = 2;
-      for (let i = 2; i <= 6; i++) {
-        if (lags[`amount${i}`]) {
-          maxLag = i;
-        }
-      }
-      setVisibleLags(maxLag);
+      setVisibleLags(targetMaxLag);
 
       setForm(prev => ({
         ...prev,
@@ -499,6 +545,7 @@ export default function PredictBillPage() {
     const fixed = parseFloat(displayCompany.fixedCharge.replace(/[^\d\.]/g, "")) || 0;
     const rate = parseFloat(displayCompany.energyRate.replace(/[^\d\.]/g, "")) || 0;
     const fac = parseFloat(displayCompany.fac.replace(/[^\d\.]/g, "")) || 0;
+    const wheeling = parseFloat((displayCompany.wheeling || "0.0").replace(/[^\d\.]/g, "")) || 0;
     const dutyStr = displayCompany.duty || "";
     let dutyPercent = 16;
     if (typeof dutyStr === "string" && dutyStr.includes("%")) {
@@ -509,7 +556,8 @@ export default function PredictBillPage() {
 
     const energyCharge = units * rate;
     const facCharge = units * fac;
-    const subtotal = fixed + energyCharge + facCharge;
+    const wheelingCharge = units * wheeling;
+    const subtotal = fixed + energyCharge + facCharge + wheelingCharge;
     const duty = subtotal * (dutyPercent / 100);
     return Math.round((subtotal + duty) * 100) / 100;
   };
@@ -552,6 +600,7 @@ export default function PredictBillPage() {
         fixedCharge: displayCompany.fixedCharge,
         energyRate: displayCompany.energyRate,
         fac: displayCompany.fac,
+        wheeling: displayCompany.wheeling || "₹0.00",
         duty: displayCompany.duty,
         appliances: {
           fan: appliances.find(a => a.id === "fan")?.active ? appliances.find(a => a.id === "fan").hours : 0,
@@ -650,6 +699,7 @@ export default function PredictBillPage() {
         fixedCharge: displayCompany.fixedCharge,
         energyRate: displayCompany.energyRate,
         fac: displayCompany.fac,
+        wheeling: displayCompany.wheeling || "₹0.00",
         duty: displayCompany.duty,
         tariffCategory: tariffCategory ? tariffCategory.value : "Residential",
       };
@@ -801,13 +851,13 @@ export default function PredictBillPage() {
                             const updated = { ...prev, month: dateString };
                             if (dateString) {
                               const baseDate = dayjs(dateString, "MMM YYYY");
-                              for (let i = 2; i <= 6; i++) {
+                              for (let i = 2; i <= 12; i++) {
                                 if (baseDate.isValid()) {
                                   updated[`month${i}`] = baseDate.subtract(i - 1, "month").format("MMM YYYY");
                                 }
                               }
                             } else {
-                              for (let i = 2; i <= 6; i++) {
+                              for (let i = 2; i <= 12; i++) {
                                 updated[`month${i}`] = "";
                               }
                             }
@@ -919,6 +969,19 @@ export default function PredictBillPage() {
                                 <div>
                                   <p className="grid-values">
                                     {displayCompany.fac}
+                                  </p>
+                                  <p> / kWh</p>
+                                </div>
+                              </div>
+
+                              <div>
+                                <div>
+                                  <Zap className="grid-logo" />
+                                  <h4>Wheeling Charge</h4>
+                                </div>
+                                <div>
+                                  <p className="grid-values">
+                                    {displayCompany.wheeling || "—"}
                                   </p>
                                   <p> / kWh</p>
                                 </div>
@@ -1077,9 +1140,9 @@ export default function PredictBillPage() {
 
                
                       <div className="history-box">
-                        <h3>Add Historical Data (Lags 2 to 6)</h3>
+                        <h3>Add Historical Data (Lags 2 to 12)</h3>
                         <p>
-                          Providing more past months' data will use the new 6-month prediction model.
+                          Providing more past months' data will use the new 12-month prediction model.
                         </p>
 
                         {Array.from({ length: visibleLags - 1 }, (_, index) => {
@@ -1146,10 +1209,10 @@ export default function PredictBillPage() {
                         })}
 
                         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-                          {visibleLags < 6 && (
+                          {visibleLags < 12 && (
                             <button
                               type="button"
-                              onClick={() => setVisibleLags(prev => Math.min(6, prev + 1))}
+                              onClick={() => setVisibleLags(prev => Math.min(12, prev + 1))}
                               style={{
                                 display: "inline-flex",
                                 alignItems: "center",

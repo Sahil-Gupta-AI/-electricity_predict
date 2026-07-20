@@ -70,7 +70,7 @@ export default function UploadBill() {
                 headers["Authorization"] = `Bearer ${token}`;
             }
 
-            const res = await fetch("http://localhost:8000/api/extract", {
+            const res = await fetch("/api/extract", {
                 method: "POST",
                 body: formData,
                 headers: headers,
@@ -482,6 +482,7 @@ function ExtractedContent({ data: d }) {
                         <div className="ub-summary-row"><span>Energy Charges</span><span>{d.summary?.energy}</span></div>
                         <div className="ub-summary-row"><span>Fixed Charge</span><span>{d.summary?.fixed}</span></div>
                         <div className="ub-summary-row"><span>Fuel Adjustment (FAC)</span><span>{d.summary?.fac}</span></div>
+                        <div className="ub-summary-row"><span>Wheeling Charge</span><span>{d.summary?.wheeling}</span></div>
                         <div className="ub-summary-row"><span>Electricity Duty</span><span>{d.summary?.duty}</span></div>
                         <div className="ub-summary-row"><span>Other Charges</span><span>{d.summary?.other}</span></div>
                         <div className="ub-summary-total">

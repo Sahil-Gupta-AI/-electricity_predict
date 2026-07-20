@@ -71,24 +71,23 @@ router.post("/extract", auth, upload.single("file"), async (req, res) => {
                     const existing = await Bill.findOne({ user: req.user.id, billDate: h.date });
                     if (!existing) {
                         let estUnits = 0;
-                        const companyKey = getCompanyKey(d.company?.name);
-                        const ocrFixed = d.summary?.fixed || "130";
-                        const ocrEnergy = d.slabs && d.slabs.length > 0 ? d.slabs[0].rate : "4.28";
-                        
-                        const fixedVal = parseFloat(String(ocrFixed).replace(/[^\d\.]/g, "")) || 130;
-                        const rateVal = parseFloat(String(ocrEnergy).replace(/[^\d\.]/g, "")) || 4.28;
-                        
-                        const subtotal = hAmt / 1.16;
-                        const energyCharges = subtotal - fixedVal;
-                        if (energyCharges > 0) {
-                            let wheeling = 0.0;
-                            if (rateVal === 4.28 || rateVal === 11.10) wheeling = 1.47;
-                            else if (rateVal === 3.96 || rateVal === 10.80) wheeling = 1.60;
-                            else if (rateVal === 4.43 || rateVal === 9.64) wheeling = 2.76;
-                            else if (rateVal === 2.65 || rateVal === 5.85) wheeling = 2.28;
-                            else if (rateVal === 2.10 || rateVal === 5.50) wheeling = 1.87;
+                        if (h.units) {
+                            estUnits = parseFloat(h.units.replace(/[^\d\.]/g, "")) || 0;
+                        } else {
+                            const companyKey = getCompanyKey(d.company?.name);
+                            const ocrFixed = d.summary?.fixed || "130";
+                            const ocrEnergy = d.slabs && d.slabs.length > 0 ? d.slabs[0].rate : "4.28";
+                            const ocrWheeling = d.summary?.wheeling || "0.0";
                             
-                            estUnits = Math.max(0, Math.round(energyCharges / (rateVal + wheeling)));
+                            const fixedVal = parseFloat(String(ocrFixed).replace(/[^\d\.]/g, "")) || 130;
+                            const rateVal = parseFloat(String(ocrEnergy).replace(/[^\d\.]/g, "")) || 4.28;
+                            const wheelingVal = parseFloat(String(ocrWheeling).replace(/[^\d\.]/g, "")) || 0.0;
+                            
+                            const subtotal = hAmt / 1.16;
+                            const energyCharges = subtotal - fixedVal;
+                            if (energyCharges > 0) {
+                                estUnits = Math.max(0, Math.round(energyCharges / (rateVal + wheelingVal)));
+                            }
                         }
                         
                         const histBill = new Bill({
@@ -113,6 +112,7 @@ router.post("/extract", auth, upload.single("file"), async (req, res) => {
             const ocrFixed = d.summary?.fixed || "";
             const ocrFac = d.summary?.fac || "";
             const ocrDuty = d.summary?.duty || "";
+            const ocrWheeling = d.summary?.wheeling || "";
             let ocrEnergy = "";
             if (d.slabs && d.slabs.length > 0) {
                 ocrEnergy = d.slabs[0].rate || "";
@@ -122,6 +122,7 @@ router.post("/extract", auth, upload.single("file"), async (req, res) => {
             if (ocrFixed && ocrFixed !== "—") updateFields.fixedCharge = ocrFixed;
             if (ocrEnergy && ocrEnergy !== "—") updateFields.energyRate = ocrEnergy;
             if (ocrFac && ocrFac !== "—") updateFields.fac = ocrFac;
+            if (ocrWheeling && ocrWheeling !== "—") updateFields.wheeling = ocrWheeling;
             if (ocrDuty && ocrDuty !== "—") updateFields.duty = ocrDuty;
             
             const cleanNames = {
