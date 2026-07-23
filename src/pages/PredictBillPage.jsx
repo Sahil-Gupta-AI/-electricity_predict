@@ -394,6 +394,57 @@ export default function PredictBillPage() {
       }
 
       let maxExtractedLag = 1;
+      // Compute estimated bill amount for historical units using fixed, wheeling, duty, FAC charges
+      const computeBillFromUnits = (u) => {
+        if (!u || u <= 0) return 0;
+        const summary = initialBillDetails.summary || {};
+        const slabs = initialBillDetails.slabs || [];
+        
+        const currUnitsVal = parseFloat(String(initialBillDetails.usage?.currUnits || "341").replace(/[^\d\.]/g, "")) || 341;
+        const currAmtVal = parseFloat(String(initialBillDetails.usage?.currAmount || "3099").replace(/[^\d\.]/g, "")) || 3099;
+        
+        let energyCharges = 0;
+        if (slabs && slabs.length > 0) {
+          let rem = u;
+          slabs.forEach(s => {
+            if (rem <= 0) return;
+            const rate = parseFloat(String(s.rate).replace(/[^\d\.]/g, "")) || 0;
+            let limit = 100;
+            if (s.range.includes("101")) limit = 200;
+            else if (s.range.includes("301")) limit = 200;
+            else if (s.range.includes("501")) limit = 99999;
+            
+            const take = Math.min(rem, limit);
+            energyCharges += take * rate;
+            rem -= take;
+          });
+        } else {
+          const rateVal = parseFloat(String(summary.energy || "1684").replace(/[^\d\.]/g, "")) / currUnitsVal || 5.0;
+          energyCharges = u * rateVal;
+        }
+        
+        const fixedVal = parseFloat(String(summary.fixed || "135").replace(/[^\d\.]/g, "")) || 135;
+        const facValTotal = parseFloat(String(summary.fac || "127").replace(/[^\d\.]/g, "")) || 0;
+        const facPerUnit = currUnitsVal > 0 ? (facValTotal / currUnitsVal) : 0.37;
+        const facVal = u * facPerUnit;
+        
+        const wheelingValTotal = parseFloat(String(summary.wheeling || "621").replace(/[^\d\.]/g, "")) || 0;
+        const wheelingPerUnit = currUnitsVal > 0 ? (wheelingValTotal / currUnitsVal) : 1.82;
+        const wheelingVal = u * wheelingPerUnit;
+        
+        const dutyValTotal = parseFloat(String(summary.duty || "411").replace(/[^\d\.]/g, "")) || 0;
+        const otherValTotal = parseFloat(String(summary.other || "123").replace(/[^\d\.]/g, "")) || 0;
+        
+        const dutyRatio = currAmtVal > 0 ? (dutyValTotal / currAmtVal) : 0.13;
+        const otherRatio = currAmtVal > 0 ? (otherValTotal / currAmtVal) : 0.04;
+        
+        const subtotal = energyCharges + fixedVal + facVal + wheelingVal;
+        const dutyVal = subtotal * (dutyRatio / (1 - dutyRatio - otherRatio));
+        const otherVal = subtotal * (otherRatio / (1 - dutyRatio - otherRatio));
+        
+        return Math.round(subtotal + dutyVal + otherVal);
+      };
+
       if (initialBillDetails.history && parsedMonth) {
         initialBillDetails.history.forEach(h => {
           const parts = h.date.split(/[\/\-\s]/);
@@ -421,29 +472,20 @@ export default function PredictBillPage() {
             const lagIdx = diff + 1;
             
             if (lagIdx >= 2 && lagIdx <= 12) {
-              const hAmt = parseFloat(h.amount.replace(/[^\d\.]/g, "")) || 0;
+              let hAmt = parseFloat(h.amount.replace(/[^\d\.]/g, "")) || 0;
+              let hUnitsVal = parseFloat((h.units || "").replace(/[^\d\.]/g, "")) || 0;
+              
+              if (hUnitsVal > 0 && hAmt === 0) {
+                hAmt = computeBillFromUnits(hUnitsVal);
+              }
+              
               lags[`amount${lagIdx}`] = hAmt ? String(hAmt) : "";
+              lags[`unit${lagIdx}`] = hUnitsVal ? String(hUnitsVal) : "";
               lags[`month${lagIdx}`] = hMonthStr;
               
-              if (hAmt > 0 && lagIdx > maxExtractedLag) {
+              if ((hAmt > 0 || hUnitsVal > 0) && lagIdx > maxExtractedLag) {
                 maxExtractedLag = lagIdx;
               }
-              
-              // Use parsed units if present, otherwise estimate
-              let estUnits = "";
-              if (h.units) {
-                estUnits = String(parseFloat(h.units.replace(/[^\d\.]/g, "")) || "");
-              } else if (hAmt > 0) {
-                const fixedVal = parseFloat(String(ocrFixed || "130").replace(/[^\d\.]/g, "")) || 130;
-                const rateVal = parseFloat(String(ocrEnergy || "4.28").replace(/[^\d\.]/g, "")) || 4.28;
-                const wheelingVal = parseFloat(String(ocrWheeling || "0.0").replace(/[^\d\.]/g, "")) || 0.0;
-                const subtotal = hAmt / 1.16;
-                const energyCharges = subtotal - fixedVal;
-                if (energyCharges > 0) {
-                  estUnits = String(Math.max(0, Math.round(energyCharges / (rateVal + wheelingVal))));
-                }
-              }
-              lags[`unit${lagIdx}`] = estUnits;
             }
           }
         });
@@ -452,7 +494,7 @@ export default function PredictBillPage() {
       // Interpolate any missing lags in the sequence up to the maximum extracted lag
       const targetMaxLag = Math.max(2, maxExtractedLag);
       for (let i = 2; i <= targetMaxLag; i++) {
-        if (!lags[`amount${i}`]) {
+        if (!lags[`amount${i}`] || !lags[`unit${i}`]) {
           let prevVal = parseFloat(cleanedAmount) || 0;
           let prevUnit = parseFloat(cleanedUnits) || 0;
           if (i > 2 && lags[`amount${i-1}`]) {
@@ -470,12 +512,12 @@ export default function PredictBillPage() {
             }
           }
           
-          if (nextVal > 0) {
-            lags[`amount${i}`] = String(Math.round((prevVal + nextVal) / 2));
+          if (nextUnit > 0) {
             lags[`unit${i}`] = String(Math.round((prevUnit + nextUnit) / 2));
-          } else {
-            lags[`amount${i}`] = String(Math.round(prevVal));
+            lags[`amount${i}`] = String(computeBillFromUnits(parseFloat(lags[`unit${i}`])));
+          } else if (prevUnit > 0) {
             lags[`unit${i}`] = String(Math.round(prevUnit));
+            lags[`amount${i}`] = String(computeBillFromUnits(prevUnit));
           }
           
           if (parsedMonth) {
@@ -1072,7 +1114,12 @@ export default function PredictBillPage() {
                             boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)"
                           }}>
                             <span style={{ color: "#6b7280", fontSize: "10.5px" }}>{h.date}</span>
-                            <span style={{ color: "#111827", fontWeight: "700" }}>{h.amount}</span>
+                            <span style={{ color: "#111827", fontWeight: "700" }}>
+                              {h.amount && h.amount !== "—" ? h.amount : h.units}
+                            </span>
+                            {h.amount && h.amount !== "—" && h.units && h.units !== "—" && (
+                              <span style={{ color: "#6b7280", fontSize: "10.5px" }}>{h.units}</span>
+                            )}
                           </div>
                         ))}
                       </div>

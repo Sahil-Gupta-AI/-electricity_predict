@@ -43,106 +43,104 @@ router.post("/extract", auth, upload.single("file"), async (req, res) => {
             maxBodyLength: Infinity,
         });
 
-        // Save to database
         const d = flaskRes.data;
-        const unitsRaw = d.usage?.currUnits || "0";
-        const amountRaw = d.usage?.currAmount || "0";
-        const units = parseFloat(unitsRaw.replace(/[^\d\.]/g, "")) || 0;
-        const amount = parseFloat(amountRaw.replace(/[^\d\.]/g, "")) || 0;
 
-        const bill = new Bill({
-            user: req.user.id,
-            company: d.company?.name || "—",
-            consumerName: d.consumer?.name || "—",
-            billDate: d.consumer?.billDate || "—",
-            dueDate: d.consumer?.dueDate || "—",
-            units: units,
-            amount: amount
-        });
+        // Save to database (Graceful fallback if MongoDB Atlas is unreachable or offline)
+        try {
+            const unitsRaw = d.usage?.currUnits || "0";
+            const amountRaw = d.usage?.currAmount || "0";
+            const units = parseFloat(unitsRaw.replace(/[^\d\.]/g, "")) || 0;
+            const amount = parseFloat(amountRaw.replace(/[^\d\.]/g, "")) || 0;
 
-        await bill.save();
-        console.log(`Saved extracted bill in MongoDB for user: ${req.user.email}`);
+            if (req.user && req.user.id) {
+                // Clean old bill history for this user to avoid stale entries
+                await Bill.deleteMany({ user: req.user.id });
 
-        // Save payment history as separate bills to update the dashboard graphs
-        if (d.history && Array.isArray(d.history)) {
-            for (const h of d.history) {
-                const hAmt = parseFloat(h.amount.replace(/[^\d\.]/g, "")) || 0;
-                if (hAmt > 0 && h.date) {
-                    const existing = await Bill.findOne({ user: req.user.id, billDate: h.date });
-                    if (!existing) {
-                        let estUnits = 0;
-                        if (h.units) {
-                            estUnits = parseFloat(h.units.replace(/[^\d\.]/g, "")) || 0;
-                        } else {
-                            const companyKey = getCompanyKey(d.company?.name);
-                            const ocrFixed = d.summary?.fixed || "130";
-                            const ocrEnergy = d.slabs && d.slabs.length > 0 ? d.slabs[0].rate : "4.28";
-                            const ocrWheeling = d.summary?.wheeling || "0.0";
+                const bill = new Bill({
+                    user: req.user.id,
+                    company: d.company?.name || "—",
+                    consumerName: d.consumer?.name || "—",
+                    billDate: d.consumer?.billDate || "—",
+                    dueDate: d.consumer?.dueDate || "—",
+                    units: units,
+                    amount: amount
+                });
+
+                await bill.save();
+                console.log(`Saved extracted bill in MongoDB for user: ${req.user.email}`);
+
+                // Save payment history as separate bills to update dashboard graphs
+                if (d.history && Array.isArray(d.history)) {
+                    for (const h of d.history) {
+                        const hUnits = parseFloat((h.units || "").replace(/[^\d\.]/g, "")) || 0;
+                        let hAmt = parseFloat((h.amount || "").replace(/[^\d\.]/g, "")) || 0;
+
+                        if (hAmt === 0 && hUnits > 0) {
+                            const ocrFixed = parseFloat(String(d.summary?.fixed || "135").replace(/[^\d\.]/g, "")) || 135;
+                            const ocrEnergy = d.slabs && d.slabs.length > 0 ? (parseFloat(String(d.slabs[0].rate).replace(/[^\d\.]/g, "")) || 2.10) : 2.10;
+                            const ocrWheeling = parseFloat(String(d.summary?.wheeling || "0").replace(/[^\d\.]/g, "")) || 0;
+                            const ocrFac = parseFloat(String(d.summary?.fac || "0").replace(/[^\d\.]/g, "")) || 0;
                             
-                            const fixedVal = parseFloat(String(ocrFixed).replace(/[^\d\.]/g, "")) || 130;
-                            const rateVal = parseFloat(String(ocrEnergy).replace(/[^\d\.]/g, "")) || 4.28;
-                            const wheelingVal = parseFloat(String(ocrWheeling).replace(/[^\d\.]/g, "")) || 0.0;
-                            
-                            const subtotal = hAmt / 1.16;
-                            const energyCharges = subtotal - fixedVal;
-                            if (energyCharges > 0) {
-                                estUnits = Math.max(0, Math.round(energyCharges / (rateVal + wheelingVal)));
-                            }
+                            const energyTotal = hUnits * ocrEnergy;
+                            const subtotal = energyTotal + ocrFixed + ocrWheeling + ocrFac;
+                            hAmt = Math.round(subtotal * 1.16);
                         }
-                        
-                        const histBill = new Bill({
-                            user: req.user.id,
-                            company: d.company?.name || "—",
-                            consumerName: d.consumer?.name || "—",
-                            billDate: h.date,
-                            dueDate: "—",
-                            units: estUnits,
-                            amount: hAmt
-                        });
-                        await histBill.save();
-                        console.log(`Saved history bill in MongoDB: date=${h.date}, amount=${hAmt}, units=${estUnits}`);
+
+                        if ((hAmt > 0 || hUnits > 0) && h.date) {
+                            const histBill = new Bill({
+                                user: req.user.id,
+                                company: d.company?.name || "—",
+                                consumerName: d.consumer?.name || "—",
+                                billDate: h.date,
+                                dueDate: "—",
+                                units: hUnits,
+                                amount: hAmt
+                            });
+                            await histBill.save();
+                        }
+                    }
+                }
+
+                // Save to Company Profile
+                const companyKey = getCompanyKey(d.company?.name);
+                if (companyKey !== "none") {
+                    const ocrFixed = d.summary?.fixed || "";
+                    const ocrFac = d.summary?.fac || "";
+                    const ocrDuty = d.summary?.duty || "";
+                    const ocrWheeling = d.summary?.wheeling || "";
+                    let ocrEnergy = "";
+                    if (d.slabs && d.slabs.length > 0) {
+                        ocrEnergy = d.slabs[0].rate || "";
+                    }
+
+                    const updateFields = {};
+                    if (ocrFixed && ocrFixed !== "—") updateFields.fixedCharge = ocrFixed;
+                    if (ocrEnergy && ocrEnergy !== "—") updateFields.energyRate = ocrEnergy;
+                    if (ocrFac && ocrFac !== "—") updateFields.fac = ocrFac;
+                    if (ocrWheeling && ocrWheeling !== "—") updateFields.wheeling = ocrWheeling;
+                    if (ocrDuty && ocrDuty !== "—") updateFields.duty = ocrDuty;
+                    
+                    const cleanNames = {
+                        msedcl: "MSEDCL (Mahavitaran)",
+                        tata: "Tata Power",
+                        adani: "Adani Electricity",
+                        torrent: "Torrent Power",
+                        best: "BEST"
+                    };
+                    updateFields.companyName = cleanNames[companyKey] || d.company?.name || companyKey;
+                    updateFields.updatedAt = new Date();
+
+                    if (Object.keys(updateFields).length > 2) {
+                        await CompanyProfile.findOneAndUpdate(
+                            { companyKey },
+                            { $set: updateFields },
+                            { upsert: true, new: true }
+                        );
                     }
                 }
             }
-        }
-
-        // Save to Company Profile
-        const companyKey = getCompanyKey(d.company?.name);
-        if (companyKey !== "none") {
-            const ocrFixed = d.summary?.fixed || "";
-            const ocrFac = d.summary?.fac || "";
-            const ocrDuty = d.summary?.duty || "";
-            const ocrWheeling = d.summary?.wheeling || "";
-            let ocrEnergy = "";
-            if (d.slabs && d.slabs.length > 0) {
-                ocrEnergy = d.slabs[0].rate || "";
-            }
-
-            const updateFields = {};
-            if (ocrFixed && ocrFixed !== "—") updateFields.fixedCharge = ocrFixed;
-            if (ocrEnergy && ocrEnergy !== "—") updateFields.energyRate = ocrEnergy;
-            if (ocrFac && ocrFac !== "—") updateFields.fac = ocrFac;
-            if (ocrWheeling && ocrWheeling !== "—") updateFields.wheeling = ocrWheeling;
-            if (ocrDuty && ocrDuty !== "—") updateFields.duty = ocrDuty;
-            
-            const cleanNames = {
-                msedcl: "MSEDCL (Mahavitaran)",
-                tata: "Tata Power",
-                adani: "Adani Electricity",
-                torrent: "Torrent Power",
-                best: "BEST"
-            };
-            updateFields.companyName = cleanNames[companyKey] || d.company?.name || companyKey;
-            updateFields.updatedAt = new Date();
-
-            if (Object.keys(updateFields).length > 2) {
-                await CompanyProfile.findOneAndUpdate(
-                    { companyKey },
-                    { $set: updateFields },
-                    { upsert: true, new: true }
-                );
-                console.log(`Updated shared Company Profile tariff for key: ${companyKey}`);
-            }
+        } catch (dbErr) {
+            console.warn("MongoDB operation warning (non-fatal):", dbErr.message);
         }
 
         return res.json(d);

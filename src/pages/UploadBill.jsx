@@ -444,7 +444,12 @@ function ExtractedContent({ data: d }) {
                                 gap: "2px"
                             }}>
                                 <span style={{ fontSize: "11px", color: "#6b7280", fontWeight: "500" }}>{h.date}</span>
-                                <span style={{ fontSize: "16px", color: "#111827", fontWeight: "700" }}>{h.amount}</span>
+                                <span style={{ fontSize: "16px", color: "#111827", fontWeight: "700" }}>
+                                    {h.amount && h.amount !== "—" ? h.amount : h.units}
+                                </span>
+                                {h.amount && h.amount !== "—" && h.units && h.units !== "—" && (
+                                    <span style={{ fontSize: "11px", color: "#6b7280" }}>{h.units}</span>
+                                )}
                             </div>
                         ))}
                     </div>
